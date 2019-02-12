@@ -18,7 +18,7 @@ name = 'amp-atomistics'
 version = open(os.path.join('amp', 'VERSION')).read().strip()
 description = 'Atomistic Machine-learning Package'
 long_description = open('README').read()
-packages = ['amp', 'amp.descriptor', 'amp.regression', 'amp.model']
+packages = ['amp', 'amp.descriptor', 'amp.regression', 'amp.model', 'amp.stats']
 package_dir = {'amp': 'amp', 'descriptor': 'descriptor',
                'regression': 'regression', 'model': 'model',
                'stats': 'stats'}
