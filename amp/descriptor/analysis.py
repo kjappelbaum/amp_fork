@@ -12,13 +12,22 @@ class FingerprintPlot:
         self._calc = calc
 
     def __call__(self, images, name='fingerprints.pdf', overlay=None):
-        """Creates a violin plot of fingerprints for each element type in the
+        """
+        Creates a violin plot of fingerprints for each element type in the
         fed images; saves to specified filename.
 
         Optionally, the user can supply either an ase.Atoms or a list of
         ase.Atom objects with the overlay keyword; this will result in
         points being added to the fingerprints indicating the values for
         that atom or atoms object.
+
+        Parameters
+        ----------
+            images: object: 
+                ASE atom object
+            names: str
+                filename of output
+            overlay: ASE atom object or list of ASE atom objects
         """
 
         from matplotlib import pyplot
