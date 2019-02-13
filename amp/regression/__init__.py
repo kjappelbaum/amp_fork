@@ -86,7 +86,7 @@ class Regressor:
                 }
             }
             lossprime = False
-        elif optimizer == 'Basinhopping'
+        elif optimizer == 'Basinhopping':
             from scipy.optimize import minimize as optimizer
             optimizer_kwargs = {
                 'method': 'BFGS',
@@ -94,7 +94,7 @@ class Regressor:
                     'gtol': 1e-15,
                 }
             }
-            self.lossprime = False 
+            self.lossprime = False
         if user_kwargs:
             optimizer_kwargs.update(user_kwargs)
         self.optimizer = optimizer

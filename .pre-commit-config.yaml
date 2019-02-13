@@ -12,7 +12,7 @@
     args: ["-i"]
 
   # prospector: collection of linters
-   - id: prospector
+  - id: prospector
     language: system
     types: [file, python]
     name: prospector
