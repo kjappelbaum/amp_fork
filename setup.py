@@ -43,6 +43,25 @@ package_data = {'amp': ['VERSION']}
 
 scripts = ['tools/amp-compress', 'tools/amp-plotconvergence']
 
+extras_require = {
+    'testing': [
+        'mock==2.0.0',
+        'wheel>=0.31',
+        'coverage',
+        'pytest==3.6.3',
+        'pytest-cov==2.6.0'
+    ],
+    'pre-commit': [
+        'pre-commit==1.11.0',
+        'yapf==0.24.0',
+        'prospector==0.12.11',
+        'pylint==1.9.3'
+    ],
+    'docs': [
+        'sphinx',
+        'sphinx_rtd_theme'
+    ]
+
 try:
     setup(name=name,
           version=version,
@@ -52,6 +71,7 @@ try:
           package_dir=package_dir,
           classifiers=classifiers,
           install_requires=install_requires,
+          extras_require=extras_require, 
           scripts=scripts,
           ext_modules=ext_modules,
           author=author,
@@ -73,6 +93,7 @@ except SystemExit as ex:
           package_dir=package_dir,
           classifiers=classifiers,
           install_requires=install_requires,
+          extras_require=extras_require, 
           scripts=scripts,
           ext_modules=[],
           author=author,
