@@ -13,8 +13,8 @@ class Regressor:
     ----------
     optimizer : str
         The optimizer to use. Several defaults are available including
-        'L-BFGS-B', 'BFGS', 'TNC', or 'NCG'.  Alternatively, any function can
-        be supplied which behaves like scipy.optimize.fmin_bfgs.
+        'L-BFGS-B', 'BFGS', 'TNC', 'Basinhopping' or 'NCG'. 
+        Alternatively, any function can be supplied which behaves like scipy.optimize.fmin_bfgs.
     optimizer_kwargs : dict
         Optional keywords for the corresponding optimizer.
     lossprime : boolean
@@ -35,19 +35,23 @@ class Regressor:
         if optimizer == 'BFGS':
             from scipy.optimize import minimize as optimizer
             optimizer_kwargs = {
-                                'method' : 'BFGS',
-                                'options': {'gtol': 1e-15, }
-                               }
+                'method': 'BFGS',
+                'options': {
+                    'gtol': 1e-15,
+                }
+            }
             #optimizer_kwargs = {'method':'BFGS', 'gtol': 1e-15, }
         elif optimizer == 'L-BFGS-B':
             from scipy.optimize import minimize as optimizer
             optimizer_kwargs = {
-                                'method': 'L-BFGS-B',
-                                'options': {'ftol': 1e-05,
-                                            'gtol': 1e-08,
-                                            'maxfun': 1000000,
-                                            'maxiter': 1000000}
-                               }
+                'method': 'L-BFGS-B',
+                'options': {
+                    'ftol': 1e-05,
+                    'gtol': 1e-08,
+                    'maxfun': 1000000,
+                    'maxiter': 1000000
+                }
+            }
             import scipy
             from distutils.version import StrictVersion
             if StrictVersion(scipy.__version__) >= StrictVersion('0.17.0'):
@@ -55,28 +59,42 @@ class Regressor:
         elif optimizer == 'TNC':
             from scipy.optimize import minimize as optimizer
             optimizer_kwargs = {
-                                'method': 'TNC',
-                                'options': {'ftol': 0.,
-                                            'xtol': 0.,
-                                            'gtol': 1e-08,
-                                            'maxiter': 1000000, }
-                               }
+                'method': 'TNC',
+                'options': {
+                    'ftol': 0.,
+                    'xtol': 0.,
+                    'gtol': 1e-08,
+                    'maxiter': 1000000,
+                }
+            }
         elif optimizer == 'Newton-CG':
             from scipy.optimize import minimize as optimizer
             optimizer_kwargs = {
-                                'method': 'Newton-CG',
-                                'options': {'xtol': 1e-15, }
-                               }
+                'method': 'Newton-CG',
+                'options': {
+                    'xtol': 1e-15,
+                }
+            }
 
         elif optimizer == 'Nelder-Mead':
             from scipy.optimize import minimize as optimizer
             optimizer_kwargs = {
-                                'method': 'Nelder-Mead',
-                                'options': {'maxfun': 99999999,
-                                            'maxiter': 99999999, }
-                               }
+                'method': 'Nelder-Mead',
+                'options': {
+                    'maxfun': 99999999,
+                    'maxiter': 99999999,
+                }
+            }
             lossprime = False
+        elif optimizer == 'Basinhopping'
+            from scipy.optimize import minimize as optimizer
+            optimizer_kwargs = {
+                'method': 'BFGS',
+                'minimizer_kwargs': {
+                    'gtol': 1e-15,
+                }
 
+            }
         if user_kwargs:
             optimizer_kwargs.update(user_kwargs)
         self.optimizer = optimizer
@@ -96,8 +114,10 @@ class Regressor:
         log : str
             Name of script to log progress.
         """
-        self.optimizer_kwargs.update({'jac': self.lossprime,
-                                        'args': (self.lossprime,)})
+        self.optimizer_kwargs.update({
+            'jac': self.lossprime,
+            'args': (self.lossprime, )
+        })
         log('Starting parameter optimization.', tic='opt')
         log(' Optimizer: %s' % self.optimizer)
         log(' Optimizer kwargs: %s' % self.optimizer_kwargs)
@@ -114,6 +134,6 @@ class Regressor:
                 max_lossprime = \
                     max(abs(max(model.lossfunction.dloss_dparameters)),
                         abs(min(model.lossfunction.dloss_dparameters)))
-                log('...maximum absolute value of loss prime: %.3e'
-                    % max_lossprime)
+                log('...maximum absolute value of loss prime: %.3e' %
+                    max_lossprime)
             return False
