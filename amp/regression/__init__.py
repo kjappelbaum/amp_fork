@@ -93,8 +93,8 @@ class Regressor:
                 'minimizer_kwargs': {
                     'gtol': 1e-15,
                 }
-
             }
+            self.lossprime = False 
         if user_kwargs:
             optimizer_kwargs.update(user_kwargs)
         self.optimizer = optimizer
