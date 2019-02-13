@@ -1,6 +1,8 @@
 import numpy as np
 from numpy import sqrt
 
+from numba import jit 
+
 from ase.data import atomic_numbers
 from ase.calculators.calculator import Parameters
 from scipy.special import sph_harm
@@ -699,7 +701,7 @@ def binomial(n, k, factorial):
         (factorial[int(2 * k)] * factorial[int(2 * (n - k))])
     return c
 
-
+@jit
 def calculate_R(n, l, rho, factorial):
     """Calculates R_{n}^{l}(rho) according to the last equation of wikipedia.
     """
@@ -807,7 +809,7 @@ def calculate_q(nu, k, l, factorial):
 
     return result
 
-
+@jit
 def calculate_Z(n, l, m, x, y, z, factorial):
     """Calculates Z_{nl}^{m}(x, y, z) according to the unnumbered equation afer
     Eq. (11) of "3D Zernike Descriptors for Content Based Shape Retrieval",
@@ -846,7 +848,7 @@ def calculate_Z(n, l, m, x, y, z, factorial):
 
     return value
 
-
+@jit
 def calculate_Z_prime(n, l, m, x, y, z, p, factorial):
     """Calculates dZ_{nl}^{m}(x, y, z)/dR_{p} according to the unnumbered
     equation afer Eq. (11) of "3D Zernike Descriptors for Content Based Shape
