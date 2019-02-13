@@ -7,3 +7,4 @@
 structures and settings and don't have to write python. We could also have tool/flask app to create this input file)
 - [ ] Update docs
 - [ ] Increase test coverage `lint` and `yapf` the code. Use Travis for automatic testing. 
+- [ ] Optimize training sampling strategies? 
