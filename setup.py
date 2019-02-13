@@ -2,6 +2,7 @@
 
 import os
 import warnings
+from setuptools import setup
 
 try:
     from numpy.distutils.core import Extension, setup
