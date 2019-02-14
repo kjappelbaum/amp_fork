@@ -327,8 +327,10 @@ class NeuralNetwork(Model):
         """
         if self.lossfunction.parameters['force_coefficient'] is None:
             forcetraining = False
-        elif self.lossfunction.parameters['force_coefficient'] > 0.:
+        elif self.lossfunction.parameters['force_coefficient'] > 0.0:
             forcetraining = True
+        else:
+            forcetraining = False # fallback in case of invalid input
         return forcetraining
 
     @property
