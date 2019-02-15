@@ -469,6 +469,7 @@ class FingerprintPrimeCalculator:
 
         self.factorial = [fac(0.5 * _) for _ in range(4 * nmax + 3)]
 
+    @jit
     def calculate(self, image, key):
         """Makes a list of fingerprint derivatives, one per atom, for the fed
         image.
@@ -544,6 +545,7 @@ class FingerprintPrimeCalculator:
 
         return fingerprintprimes
 
+    @jit
     def get_fingerprintprime(self, index, symbol, n_indices, n_symbols, Rs,
                              p, q):
         """Returns the value of the derivative of G for atom with index and

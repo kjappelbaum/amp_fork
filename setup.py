@@ -34,7 +34,8 @@ classifiers = [
     'Programming Language :: Python :: 3',
     'Programming Language :: Python :: 3.3'
 ]
-install_requires = ['numpy>=1.7.0', 'matplotlib', 'ase', 'pyzmq', 'pexpect']
+install_requires = ['numpy>=1.7.0', 'matplotlib', 'ase', 'pyzmq', 'pexpect', 'numba']
+
 ext_modules = [
     Extension(
         name='amp.fmodules',
