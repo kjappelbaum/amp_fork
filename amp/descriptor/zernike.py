@@ -1,7 +1,7 @@
 import numpy as np
 from numpy import sqrt
 
-from numba import jit 
+from numba import jit
 
 from ase.data import atomic_numbers
 from ase.calculators.calculator import Parameters
@@ -17,7 +17,6 @@ except ImportError:
 
 
 class Zernike(object):
-
     """Class that calculates Zernike fingerprints.
 
     Parameters
@@ -70,18 +69,26 @@ class Zernike(object):
         RuntimeError, TypeError
     """
 
-    def __init__(self, cutoff=Cosine(6.5), Gs=None, nmax=5, dblabel=None,
-                 elements=None, version='2016.02', mode='atom-centered',
+    def __init__(self,
+                 cutoff=Cosine(6.5),
+                 Gs=None,
+                 nmax=5,
+                 dblabel=None,
+                 elements=None,
+                 version='2016.02',
+                 mode='atom-centered',
                  fortran=True):
 
         # Check of the version of descriptor, particularly if restarting.
-        compatibleversions = ['2016.02', ]
+        compatibleversions = [
+            '2016.02',
+        ]
         if (version is not None) and version not in compatibleversions:
-            raise RuntimeError('Error: Trying to use Zernike fingerprints'
-                               ' version %s, but this module only supports'
-                               ' versions %s. You may need an older or '
-                               ' newer version of Amp.' %
-                               (version, compatibleversions))
+            raise RuntimeError(
+                'Error: Trying to use Zernike fingerprints'
+                ' version %s, but this module only supports'
+                ' versions %s. You may need an older or '
+                ' newer version of Amp.' % (version, compatibleversions))
         else:
             version = compatibleversions[-1]
 
@@ -103,9 +110,10 @@ class Zernike(object):
         # The parameters dictionary contains the minimum information
         # to produce a compatible descriptor; that is, one that gives
         # an identical fingerprint when fed an ASE image.
-        p = self.parameters = Parameters(
-            {'importname': '.descriptor.zernike.Zernike',
-             'mode': 'atom-centered'})
+        p = self.parameters = Parameters({
+            'importname': '.descriptor.zernike.Zernike',
+            'mode': 'atom-centered'
+        })
         p.version = version
         p.cutoff = cutoff.todict()
         if p.cutoff['name'] == 'Polynomial':
@@ -123,7 +131,10 @@ class Zernike(object):
         be used to restart the calculator."""
         return self.parameters.tostring()
 
-    def calculate_fingerprints(self, images, parallel=None, log=None,
+    def calculate_fingerprints(self,
+                               images,
+                               parallel=None,
+                               log=None,
                                calculate_derivatives=False):
         """Calculates the fingerpints of the images, for the ones not already
         done.
@@ -158,14 +169,14 @@ class Zernike(object):
         if p.cutoff['name'] == 'Cosine':
             log('Cutoff radius: %.2f ' % p.cutoff['kwargs']['Rc'])
         else:
-            log('Cutoff radius: %.2f and gamma=%i '
-                % (p.cutoff['kwargs']['Rc'], self.gamma))
+            log('Cutoff radius: %.2f and gamma=%i ' %
+                (p.cutoff['kwargs']['Rc'], self.gamma))
         log('Cutoff function: %s' % repr(dict2cutoff(p.cutoff)))
 
         if p.elements is None:
             log('Finding unique set of elements in training data.')
-            p.elements = set([atom.symbol for atoms in images.values()
-                              for atom in atoms])
+            p.elements = set(
+                [atom.symbol for atoms in images.values() for atom in atoms])
         p.elements = sorted(p.elements)
         log('%i unique elements included: ' % len(p.elements) +
             ', '.join(p.elements))
@@ -208,22 +219,21 @@ class Zernike(object):
         log('Calculating neighborlists...', tic='nl')
         if not hasattr(self, 'neighborlist'):
             calc = NeighborlistCalculator(cutoff=p.cutoff['kwargs']['Rc'])
-            self.neighborlist = Data(filename='%s-neighborlists'
-                                     % self.dblabel,
-                                     calculator=calc)
+            self.neighborlist = Data(
+                filename='%s-neighborlists' % self.dblabel, calculator=calc)
         self.neighborlist.calculate_items(images, parallel=parallel, log=log)
         log('...neighborlists calculated.', toc='nl')
 
         log('Fingerprinting images...', tic='fp')
         if not hasattr(self, 'fingerprints'):
-            calc = FingerprintCalculator(neighborlist=self.neighborlist,
-                                         Gs=p.Gs,
-                                         nmax=p.nmax,
-                                         cutoff=p.cutoff,
-                                         fortran=self.fortran)
-            self.fingerprints = Data(filename='%s-fingerprints'
-                                     % self.dblabel,
-                                     calculator=calc)
+            calc = FingerprintCalculator(
+                neighborlist=self.neighborlist,
+                Gs=p.Gs,
+                nmax=p.nmax,
+                cutoff=p.cutoff,
+                fortran=self.fortran)
+            self.fingerprints = Data(
+                filename='%s-fingerprints' % self.dblabel, calculator=calc)
         self.fingerprints.calculate_items(images, parallel=parallel, log=log)
         log('...fingerprints calculated.', toc='fp')
 
@@ -251,7 +261,6 @@ class Zernike(object):
 
 # Neighborlist Calculator
 class NeighborlistCalculator:
-
     """For integration with .utilities.Data
 
     For each image fed to calculate, a list of neighbors with offset
@@ -284,10 +293,11 @@ class NeighborlistCalculator:
             Key of the image after being hashed.
         """
         cutoff = self.globals.cutoff
-        n = NeighborList(cutoffs=[cutoff / 2.] * len(image),
-                         self_interaction=False,
-                         bothways=True,
-                         skin=0.)
+        n = NeighborList(
+            cutoffs=[cutoff / 2.] * len(image),
+            self_interaction=False,
+            bothways=True,
+            skin=0.)
         n.update(image)
         return [n.get_neighbors(index) for index in range(len(image))]
 
@@ -296,9 +306,7 @@ class FingerprintCalculator:
     """For integration with .utilities.Data"""
 
     def __init__(self, neighborlist, Gs, nmax, cutoff, fortran):
-        self.globals = Parameters({'cutoff': cutoff,
-                                   'Gs': Gs,
-                                   'nmax': nmax})
+        self.globals = Parameters({'cutoff': cutoff, 'Gs': Gs, 'nmax': nmax})
         self.keyed = Parameters({'neighborlist': neighborlist})
         self.parallel_command = 'calculate_fingerprints'
         self.fortran = fortran
@@ -331,8 +339,10 @@ class FingerprintCalculator:
             index = atom.index
             neighbors, offsets = nl[index]
             neighborsymbols = [image[_].symbol for _ in neighbors]
-            Rs = [image.positions[neighbor] + np.dot(offset, image.cell)
-                  for (neighbor, offset) in zip(neighbors, offsets)]
+            Rs = [
+                image.positions[neighbor] + np.dot(offset, image.cell)
+                for (neighbor, offset) in zip(neighbors, offsets)
+            ]
             self.atoms = image
             indexfp = self.get_fingerprint(index, symbol, neighborsymbols, Rs)
             fingerprints.append(indexfp)
@@ -391,8 +401,12 @@ class FingerprintCalculator:
                                 if cutoff['name'] == 'Polynomial':
                                     c_args.append(p_gamma)
                                 Z_nlm = fmodules.calculate_z(
-                                    n=n, l=l, m=m,
-                                    x=x, y=y, z=z,
+                                    n=n,
+                                    l=l,
+                                    m=m,
+                                    x=x,
+                                    y=y,
+                                    z=z,
                                     factorial=self.factorial,
                                     length=len(self.factorial))
                                 Z_nlm = self.globals.Gs[symbol][n_symbol] * \
@@ -400,13 +414,13 @@ class FingerprintCalculator:
 
                             else:
                                 # Alternative ways to calculate Z_nlm
-#                                Z_nlm = self.globals.Gs[symbol][n_symbol] * \
-#                                    calculate_Z(n, l, m, x, y, z,
-#                                                self.factorial) * \
-#                                    cutoff_fxn(rho * Rc)
-#                                Z_nlm = self.globals.Gs[symbol][n_symbol] * \
-#                                    calculate_Z2(n, l, m, x, y, z) * \
-#                                    cutoff_fxn(rho * Rc)
+                                #                                Z_nlm = self.globals.Gs[symbol][n_symbol] * \
+                                #                                    calculate_Z(n, l, m, x, y, z,
+                                #                                                self.factorial) * \
+                                #                                    cutoff_fxn(rho * Rc)
+                                #                                Z_nlm = self.globals.Gs[symbol][n_symbol] * \
+                                #                                    calculate_Z2(n, l, m, x, y, z) * \
+                                #                                    cutoff_fxn(rho * Rc)
 
                                 if rho > 0.:
                                     theta = np.arccos(z / rho)
@@ -452,9 +466,7 @@ class FingerprintPrimeCalculator:
     """For integration with .utilities.Data"""
 
     def __init__(self, neighborlist, Gs, nmax, cutoff, fortran):
-        self.globals = Parameters({'cutoff': cutoff,
-                                   'Gs': Gs,
-                                   'nmax': nmax})
+        self.globals = Parameters({'cutoff': cutoff, 'Gs': Gs, 'nmax': nmax})
         self.keyed = Parameters({'neighborlist': neighborlist})
         self.parallel_command = 'calculate_fingerprint_primes'
         self.fortran = fortran
@@ -489,23 +501,22 @@ class FingerprintPrimeCalculator:
             selfindex = atom.index
             selfneighborindices, selfneighboroffsets = nl[selfindex]
             selfneighborsymbols = [
-                image[_].symbol for _ in selfneighborindices]
+                image[_].symbol for _ in selfneighborindices
+            ]
             for i in range(3):
                 # Calculating derivative of self atom fingerprints w.r.t.
                 # coordinates of itself.
                 nneighborindices, nneighboroffsets = nl[selfindex]
                 nneighborsymbols = [image[_].symbol for _ in nneighborindices]
 
-                Rs = [image.positions[_index] +
-                      np.dot(_offset, image.get_cell())
-                      for _index, _offset
-                      in zip(nneighborindices,
-                             nneighboroffsets)]
+                Rs = [
+                    image.positions[_index] + np.dot(_offset, image.get_cell())
+                    for _index, _offset in zip(nneighborindices,
+                                               nneighboroffsets)
+                ]
 
                 der_indexfp = self.get_fingerprintprime(
-                    selfindex, selfsymbol,
-                    nneighborindices,
-                    nneighborsymbols,
+                    selfindex, selfsymbol, nneighborindices, nneighborsymbols,
                     Rs, selfindex, i)
 
                 fingerprintprimes[
@@ -524,20 +535,18 @@ class FingerprintPrimeCalculator:
                         nneighborsymbols = \
                             [image[_].symbol for _ in nneighborindices]
 
-                        Rs = [image.positions[_index] +
-                              np.dot(_offset, image.get_cell())
-                              for _index, _offset
-                              in zip(nneighborindices,
-                                     nneighboroffsets)]
+                        Rs = [
+                            image.positions[_index] + np.dot(
+                                _offset, image.get_cell()) for _index, _offset
+                            in zip(nneighborindices, nneighboroffsets)
+                        ]
 
                         # for calculating derivatives of fingerprints,
                         # summation runs over neighboring atoms of type
                         # I (either inside or outside the main cell)
                         der_indexfp = self.get_fingerprintprime(
-                            nindex, nsymbol,
-                            nneighborindices,
-                            nneighborsymbols,
-                            Rs, selfindex, i)
+                            nindex, nsymbol, nneighborindices,
+                            nneighborsymbols, Rs, selfindex, i)
 
                         fingerprintprimes[
                             (selfindex, selfsymbol, nindex, nsymbol, i)] = \
@@ -546,8 +555,8 @@ class FingerprintPrimeCalculator:
         return fingerprintprimes
 
     @jit
-    def get_fingerprintprime(self, index, symbol, n_indices, n_symbols, Rs,
-                             p, q):
+    def get_fingerprintprime(self, index, symbol, n_indices, n_symbols, Rs, p,
+                             q):
         """Returns the value of the derivative of G for atom with index and
         symbol with respect to coordinate x_{i} of atom index m. n_indices,
         n_symbols and Rs are lists of neighbors' indices, symbols and Cartesian
@@ -591,8 +600,9 @@ class FingerprintPrimeCalculator:
             for l in range(n + 1):
                 if (n - l) % 2 == 0:
                     if self.fortran:  # fortran version; faster
-                        G_numbers = [self.globals.Gs[symbol][elm]
-                                     for elm in n_symbols]
+                        G_numbers = [
+                            self.globals.Gs[symbol][elm] for elm in n_symbols
+                        ]
                         numbers = [atomic_numbers[elm] for elm in n_symbols]
                         if len(Rs) == 0:
                             norm_prime = 0.
@@ -605,21 +615,21 @@ class FingerprintPrimeCalculator:
                                 print("Unknown cutoff function specified! \
                                     Only supports 'Cosine' and 'Polynomial'.")
                             args_calculate_zernike_prime = dict(
-                                    n=n,
-                                    l=l,
-                                    n_length=len(n_indices),
-                                    n_indices=list(n_indices),
-                                    numbers=numbers,
-                                    rs=Rs,
-                                    g_numbers=G_numbers,
-                                    cutoff=Rc,
-                                    cutofffn_code=cutofffn_code,
-                                    indexx=index,
-                                    home=home,
-                                    p=p,
-                                    q=q,
-                                    fac_length=len(self.factorial),
-                                    factorial=self.factorial)
+                                n=n,
+                                l=l,
+                                n_length=len(n_indices),
+                                n_indices=list(n_indices),
+                                numbers=numbers,
+                                rs=Rs,
+                                g_numbers=G_numbers,
+                                cutoff=Rc,
+                                cutofffn_code=cutofffn_code,
+                                indexx=index,
+                                home=home,
+                                p=p,
+                                q=q,
+                                fac_length=len(self.factorial),
+                                factorial=self.factorial)
 
                             if cutoff['name'] == 'Polynomial':
                                 args_calculate_zernike_prime['p_gamma'] =\
@@ -633,9 +643,8 @@ class FingerprintPrimeCalculator:
                         for m in range(l + 1):
                             c_nlm = 0.
                             c_nlm_prime = 0.
-                            for n_index, n_symbol, neighbor in zip(n_indices,
-                                                                   n_symbols,
-                                                                   Rs):
+                            for n_index, n_symbol, neighbor in zip(
+                                    n_indices, n_symbols, Rs):
                                 x = (neighbor[0] - home[0]) / Rc
                                 y = (neighbor[1] - home[1]) / Rc
                                 z = (neighbor[2] - home[2]) / Rc
@@ -644,8 +653,7 @@ class FingerprintPrimeCalculator:
                                 if cutoff['name'] == 'Polynomial':
                                     c_args.append(p_gamma)
 
-                                _Z_nlm = calculate_Z(n, l, m,
-                                                     x, y, z,
+                                _Z_nlm = calculate_Z(n, l, m, x, y, z,
                                                      self.factorial)
                                 # Calculates Z_nlm
                                 Z_nlm = _Z_nlm * \
@@ -660,13 +668,13 @@ class FingerprintPrimeCalculator:
                                 _Z_nlm_prime = calculate_Z_prime(
                                     n, l, m, x, y, z, q, self.factorial)
 
-                                if (Kronecker(n_index, p) -
-                                   Kronecker(index, p)) == 1:
+                                if (Kronecker(n_index, p) - Kronecker(
+                                        index, p)) == 1:
                                     Z_nlm_prime += \
                                         cutoff_fxn(*c_args) * \
                                         _Z_nlm_prime / Rc
-                                elif (Kronecker(n_index, p) -
-                                      Kronecker(index, p)) == -1:
+                                elif (Kronecker(n_index, p) - Kronecker(
+                                        index, p)) == -1:
                                     Z_nlm_prime -= \
                                         cutoff_fxn(*c_args) * \
                                         _Z_nlm_prime / Rc
@@ -703,6 +711,7 @@ def binomial(n, k, factorial):
         (factorial[int(2 * k)] * factorial[int(2 * (n - k))])
     return c
 
+
 @jit
 def calculate_R(n, l, rho, factorial):
     """Calculates R_{n}^{l}(rho) according to the last equation of wikipedia.
@@ -717,7 +726,7 @@ def calculate_R(n, l, rho, factorial):
         for s in range(int(k) + 1):
             b1 = binomial(k, s, factorial)
             b2 = binomial(n - s - 1 + 1.5, k, factorial)
-            value += ((-1) ** s) * b1 * b2 * (rho ** (n - 2. * s))
+            value += ((-1)**s) * b1 * b2 * (rho**(n - 2. * s))
 
         value *= term1
         return value
@@ -811,6 +820,7 @@ def calculate_q(nu, k, l, factorial):
 
     return result
 
+
 @jit
 def calculate_Z(n, l, m, x, y, z, factorial):
     """Calculates Z_{nl}^{m}(x, y, z) according to the unnumbered equation afer
@@ -818,9 +828,9 @@ def calculate_Z(n, l, m, x, y, z, factorial):
     Computer-Aided Design 36 (2004) 1047-1062.
     """
     value = 0.
-    term1 = sqrt((2. * l + 1.) * factorial[int(2 * (l + m))] *
-                 factorial[int(2 * (l - m))]) / factorial[int(2 * l)]
-    term2 = 2. ** (-m)
+    term1 = sqrt((2. * l + 1.) * factorial[int(2 * (l + m))] * factorial[int(
+        2 * (l - m))]) / factorial[int(2 * l)]
+    term2 = 2.**(-m)
 
     k = int((n - l) / 2.)
     for nu in range(k + 1):
@@ -844,11 +854,12 @@ def calculate_Z(n, l, m, x, y, z, factorial):
                             value += term3 * term4 * term5 * \
                                 binomial(mu, eta, factorial) * \
                                 (x ** r) * (y ** s) * (z ** t)
-    term6 = (1j) ** m
+    term6 = (1j)**m
     value = term1 * term2 * term6 * value
     value = value / sqrt(4. * np.pi / 3.)
 
     return value
+
 
 @jit
 def calculate_Z_prime(n, l, m, x, y, z, p, factorial):
@@ -857,9 +868,9 @@ def calculate_Z_prime(n, l, m, x, y, z, p, factorial):
     Retrieval", Computer-Aided Design 36 (2004) 1047-1062.
     """
     value = 0.
-    term1 = sqrt((2. * l + 1.) * factorial[int(2 * (l + m))] *
-                 factorial[int(2 * (l - m))]) / factorial[int(2 * l)]
-    term2 = 2. ** (-m)
+    term1 = sqrt((2. * l + 1.) * factorial[int(2 * (l + m))] * factorial[int(
+        2 * (l - m))]) / factorial[int(2 * l)]
+    term2 = 2.**(-m)
 
     k = int((n - l) / 2.)
     for nu in range(k + 1):
@@ -870,8 +881,8 @@ def calculate_Z_prime(n, l, m, x, y, z, p, factorial):
                 b2 = binomial(nu - alpha, beta, factorial)
                 term3 = q * b1 * b2
                 for u in range(m + 1):
-                    term4 = ((-1.)**(m - u)) * binomial(
-                        m, u, factorial) * (1j**u)
+                    term4 = ((-1.)**
+                             (m - u)) * binomial(m, u, factorial) * (1j**u)
                     for mu in range(int((l - m) / 2.) + 1):
                         term5 = ((-1.)**mu) * (2.**(-2. * mu)) * \
                             binomial(l, mu, factorial) * \
@@ -894,7 +905,7 @@ def calculate_Z_prime(n, l, m, x, y, z, p, factorial):
                                 if t != 0:
                                     value += coefficient * t * \
                                         (x ** r) * (y ** s) * (z ** (t - 1))
-    term6 = (1j) ** m
+    term6 = (1j)**m
     value = term1 * term2 * term6 * value
     value = value / sqrt(4. * np.pi / 3.)
 
@@ -924,8 +935,8 @@ if __name__ == "__main__":
     # error is directed. This should be caught by pxssh. (This could
     # alternatively be done by zmq, but this works.)
     print('<amp-connect>')  # Signal that program started.
-    sys.stderr = tempfile.NamedTemporaryFile(mode='w', delete=False,
-                                             suffix='.stderr')
+    sys.stderr = tempfile.NamedTemporaryFile(
+        mode='w', delete=False, suffix='.stderr')
     print('Log and error written to %s<stderr>' % sys.stderr.name)
 
     def w(text):
@@ -979,8 +990,7 @@ if __name__ == "__main__":
         images = socket.recv_pyobj()
         w('Received images and parameters.')
 
-        calc = FingerprintCalculator(neighborlist, Gs, nmax,
-                                     cutoff, fortran)
+        calc = FingerprintCalculator(neighborlist, Gs, nmax, cutoff, fortran)
         w('Established calculator. Calculating.')
         result = {}
         while len(images) > 0:
@@ -1008,8 +1018,8 @@ if __name__ == "__main__":
         socket.send_pyobj(msg('<request>', 'images'))
         images = socket.recv_pyobj()
 
-        calc = FingerprintPrimeCalculator(neighborlist, Gs, nmax,
-                                          cutoff, fortran)
+        calc = FingerprintPrimeCalculator(neighborlist, Gs, nmax, cutoff,
+                                          fortran)
         result = {}
         while len(images) > 0:
             key, image = images.popitem()  # Reduce memory.

@@ -13,3 +13,4 @@ structures and settings and don't have to write python. We could also have tool/
 - [ ] [SWAG](https://arxiv.org/pdf/1902.02476.pdf) as alternative to bootstrapping
 - [ ] Add tools to analyze network, visualize hidden layers. 
 - [ ] Create Docker image for quick development, testing and deployment of AMP
+- [ ] For long loops, maybe add tqdm progress bars
