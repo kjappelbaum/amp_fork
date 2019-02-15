@@ -14,16 +14,17 @@ from .utilities import now, hash_images, make_filename
 rcParams.update({'figure.autolayout': True})
 
 
-def plot_sensitivity(calc,
-                     images,
-                     d=0.0001,
-                     label='sensitivity',
-                     dblabel=None,
-                     plotfile=None,
-                     overwrite=False,
-                     energy_coefficient=1.0,
-                     force_coefficient=0.04,
-                     ):
+def plot_sensitivity(
+        calc,
+        images,
+        d=0.0001,
+        label='sensitivity',
+        dblabel=None,
+        plotfile=None,
+        overwrite=False,
+        energy_coefficient=1.0,
+        force_coefficient=0.04,
+):
     """Returns the plot of loss function in terms of perturbed parameters.
 
     Takes the load file and images. Any other keyword taken by the Amp
@@ -92,10 +93,11 @@ def plot_sensitivity(calc,
 
     vector = calc.model.vector.copy()
 
-    lossfunction = LossFunction(energy_coefficient=energy_coefficient,
-                                force_coefficient=force_coefficient,
-                                parallel=calc._parallel,
-                                )
+    lossfunction = LossFunction(
+        energy_coefficient=energy_coefficient,
+        force_coefficient=force_coefficient,
+        parallel=calc._parallel,
+    )
     calc.model.lossfunction = lossfunction
 
     # Set up local loss function.
@@ -141,20 +143,23 @@ def plot_sensitivity(calc,
         # returning back to the original value.
         vector[count] -= d
 
-    calc._log('...parameters perturbed and loss functions calculated',
-              toc='perturb')
+    calc._log(
+        '...parameters perturbed and loss functions calculated', toc='perturb')
 
-    calc._log('Plotting loss function vs perturbed parameters...',
-              tic='plot')
+    calc._log('Plotting loss function vs perturbed parameters...', tic='plot')
 
     with PdfPages(plotfile) as pdf:
         count = 0
         for parameter in vector:
             fig = pyplot.figure()
             ax = fig.add_subplot(111)
-            ax.plot(allparameters[count],
-                    alllosses[count],
-                    marker='o', linestyle='--', color='b',)
+            ax.plot(
+                allparameters[count],
+                alllosses[count],
+                marker='o',
+                linestyle='--',
+                color='b',
+            )
 
             xmin = allparameters[count][0] - \
                 0.1 * (allparameters[count][-1] - allparameters[count][0])
@@ -176,19 +181,20 @@ def plot_sensitivity(calc,
     calc._log(' ...loss functions plotted.', toc='plot')
 
 
-def plot_parity_and_error(calc,
-                          images,
-                          label_parity='parity',
-                          label_error='error',
-                          dblabel=None,
-                          xtic_angle=45.,
-                          plot_forces=True,
-                          plotfile_parity=None,
-                          plotfile_error=None,
-                          color='b.',
-                          overwrite=False,
-                          returndata=False,
-                          ):
+def plot_parity_and_error(
+        calc,
+        images,
+        label_parity='parity',
+        label_error='error',
+        dblabel=None,
+        xtic_angle=45.,
+        plot_forces=True,
+        plotfile_parity=None,
+        plotfile_error=None,
+        color='b.',
+        overwrite=False,
+        returndata=False,
+):
     """Makes a parity plot and an error plot of Amp energies and forces versus
     real energies and forces.
 
@@ -236,13 +242,13 @@ def plot_parity_and_error(calc,
         plotfile_error = make_filename(label_error, '-plot.pdf')
 
     if (not overwrite) and os.path.exists(plotfile_parity):
-        raise IOError('File exists: %s.\nIf you want to overwrite,'
-                      ' set overwrite=True or manually delete.'
-                      % plotfile_parity)
+        raise IOError(
+            'File exists: %s.\nIf you want to overwrite,'
+            ' set overwrite=True or manually delete.' % plotfile_parity)
     if (not overwrite) and os.path.exists(plotfile_error):
-        raise IOError('File exists: %s.\nIf you want to overwrite,'
-                      ' set overwrite=True or manually delete.'
-                      % plotfile_error)
+        raise IOError(
+            'File exists: %s.\nIf you want to overwrite,'
+            ' set overwrite=True or manually delete.' % plotfile_error)
 
     if plot_forces is True:
         calculate_derivatives = True
@@ -266,9 +272,7 @@ def plot_parity_and_error(calc,
     energy_data = {}
     for hash, image in images.items():
         no_of_atoms = len(image)
-        energy_args = dict(
-                fingerprints=calc.descriptor.fingerprints[hash],
-                )
+        energy_args = dict(fingerprints=calc.descriptor.fingerprints[hash], )
 
         model_name = calc.model.__class__.__name__
 
@@ -278,11 +282,10 @@ def plot_parity_and_error(calc,
                     Trajectory(calc.model.trainingimages))
                 energy_args['trainingimages'] = trainingimages
                 calc.descriptor.calculate_fingerprints(
-                        images=trainingimages,
-                        parallel=calc._parallel,
-                        log=calc._log,
-                        calculate_derivatives=calculate_derivatives
-                        )
+                    images=trainingimages,
+                    parallel=calc._parallel,
+                    log=calc._log,
+                    calculate_derivatives=calculate_derivatives)
                 fp_trainingimages = calc.descriptor.fingerprints
                 energy_args['fp_trainingimages'] = fp_trainingimages
                 energy_args['hash'] = hash
@@ -291,24 +294,25 @@ def plot_parity_and_error(calc,
         actual_energy = image.get_potential_energy(apply_constraint=False)
         act_energy_per_atom = actual_energy / no_of_atoms
         energy_error = abs(amp_energy - actual_energy) / no_of_atoms
-        energy_data[hash] = [actual_energy, amp_energy, act_energy_per_atom,
-                             energy_error]
+        energy_data[hash] = [
+            actual_energy, amp_energy, act_energy_per_atom, energy_error
+        ]
     calc._log('...potential energies calculated.', toc='pot-energy')
 
     # calculating minimum and maximum energies
-    min_act_energy = min([energy_data[hash][0]
-                          for hash, image in images.items()])
-    max_act_energy = max([energy_data[hash][0]
-                          for hash, image in images.items()])
-    min_act_energy_per_atom = min([energy_data[hash][2]
-                                   for hash, image in images.items()])
-    max_act_energy_per_atom = max([energy_data[hash][2]
-                                   for hash, image in images.items()])
+    min_act_energy = min(
+        [energy_data[hash][0] for hash, image in images.items()])
+    max_act_energy = max(
+        [energy_data[hash][0] for hash, image in images.items()])
+    min_act_energy_per_atom = min(
+        [energy_data[hash][2] for hash, image in images.items()])
+    max_act_energy_per_atom = max(
+        [energy_data[hash][2] for hash, image in images.items()])
 
     # calculating energy per atom rmse
     energy_square_error = 0.
     for hash, image in images.items():
-        energy_square_error += energy_data[hash][3] ** 2.
+        energy_square_error += energy_data[hash][3]**2.
     energy_per_atom_rmse = np.sqrt(energy_square_error / len(images))
 
     if plot_forces is True:
@@ -316,38 +320,36 @@ def plot_parity_and_error(calc,
         force_data = {}
         for hash, image in images.items():
             forces_args = dict(
-                    fingerprints=calc.descriptor.fingerprints[hash],
-                    fingerprintprimes=calc.descriptor.fingerprintprimes[hash]
-                    )
+                fingerprints=calc.descriptor.fingerprints[hash],
+                fingerprintprimes=calc.descriptor.fingerprintprimes[hash])
 
             if model_name == 'KernelRidge':
                 if calc.model.trainingimages is not None:
                     trainingimages = \
                             hash_images(Trajectory(calc.model.trainingimages))
                     calc.descriptor.calculate_fingerprints(
-                            images=trainingimages,
-                            calculate_derivatives=True
-                            )
+                        images=trainingimages, calculate_derivatives=True)
                     t_descriptor = calc.descriptor
                     forces_args['trainingimages'] = trainingimages
                     forces_args['t_descriptor'] = t_descriptor
 
             amp_forces = calc.model.calculate_forces(**forces_args)
             actual_forces = image.get_forces(apply_constraint=False)
-            force_data[hash] = [actual_forces, amp_forces,
-                                abs(np.array(amp_forces) -
-                                    np.array(actual_forces))]
+            force_data[hash] = [
+                actual_forces, amp_forces,
+                abs(np.array(amp_forces) - np.array(actual_forces))
+            ]
         calc._log('...forces calculated.', toc='forces')
 
-        min_act_force = min([force_data[hash][0][index][k]
-                             for hash, image in images.items()
-                             for index in range(len(image))
-                             for k in range(3)])
+        min_act_force = min([
+            force_data[hash][0][index][k] for hash, image in images.items()
+            for index in range(len(image)) for k in range(3)
+        ])
 
-        max_act_force = max([force_data[hash][0][index][k]
-                             for hash, image in images.items()
-                             for index in range(len(image))
-                             for k in range(3)])
+        max_act_force = max([
+            force_data[hash][0][index][k] for hash, image in images.items()
+            for index in range(len(image)) for k in range(3)
+        ])
 
         # calculating force rmse
         force_square_error = 0.
@@ -369,13 +371,16 @@ def plot_parity_and_error(calc,
         ax = fig.add_subplot(211)
 
     calc._log('Plotting energy parities...', tic='energy-plot')
-    ax.plot(list(zip(*np.vstack(energy_data.values())))[0],
-            list(zip(*np.vstack(energy_data.values())))[1], color)
+    ax.plot(
+        list(zip(*np.vstack(energy_data.values())))[0],
+        list(zip(*np.vstack(energy_data.values())))[1], color)
     # draw line
-    ax.plot([min_act_energy, max_act_energy],
-            [min_act_energy, max_act_energy],
-            'r-',
-            lw=0.3,)
+    ax.plot(
+        [min_act_energy, max_act_energy],
+        [min_act_energy, max_act_energy],
+        'r-',
+        lw=0.3,
+    )
     ax.set_xlabel("ab initio energy, eV")
     ax.set_ylabel("Amp energy, eV")
     ax.set_title("Energies")
@@ -386,13 +391,16 @@ def plot_parity_and_error(calc,
         ax = fig.add_subplot(212)
 
         calc._log('Plotting forces...', tic='force-plot')
-        ax.plot(np.hstack(force_data.values())[0].flatten(),
-                np.hstack(force_data.values())[1].flatten(), color)
+        ax.plot(
+            np.hstack(force_data.values())[0].flatten(),
+            np.hstack(force_data.values())[1].flatten(), color)
         # draw line
-        ax.plot([min_act_force, max_act_force],
-                [min_act_force, max_act_force],
-                'r-',
-                lw=0.3,)
+        ax.plot(
+            [min_act_force, max_act_force],
+            [min_act_force, max_act_force],
+            'r-',
+            lw=0.3,
+        )
         ax.set_xlabel("ab initio force, eV/Ang")
         ax.set_ylabel("Amp force, eV/Ang")
         ax.set_title("Forces")
@@ -411,18 +419,24 @@ def plot_parity_and_error(calc,
         ax = fig.add_subplot(211)
 
     calc._log('Plotting energy errors...', tic='energy-plot')
-    ax.plot(list(zip(*np.vstack(energy_data.values())))[2],
-            list(zip(*np.vstack(energy_data.values())))[3], color)
+    ax.plot(
+        list(zip(*np.vstack(energy_data.values())))[2],
+        list(zip(*np.vstack(energy_data.values())))[3], color)
     # draw horizontal line for rmse
-    ax.plot([min_act_energy_per_atom, max_act_energy_per_atom],
-            [energy_per_atom_rmse, energy_per_atom_rmse],
-            color='black', linestyle='dashed', lw=1,)
-    ax.text(max_act_energy_per_atom,
-            energy_per_atom_rmse,
-            'energy rmse = %6.5f' % energy_per_atom_rmse,
-            ha='right',
-            va='bottom',
-            color='black')
+    ax.plot(
+        [min_act_energy_per_atom, max_act_energy_per_atom],
+        [energy_per_atom_rmse, energy_per_atom_rmse],
+        color='black',
+        linestyle='dashed',
+        lw=1,
+    )
+    ax.text(
+        max_act_energy_per_atom,
+        energy_per_atom_rmse,
+        'energy rmse = %6.5f' % energy_per_atom_rmse,
+        ha='right',
+        va='bottom',
+        color='black')
     ax.set_xlabel("ab initio energy (eV) per atom")
     ax.set_ylabel("$|$ab initio energy - Amp energy$|$ / number of atoms")
     ax.set_title("Energies")
@@ -433,20 +447,25 @@ def plot_parity_and_error(calc,
         ax = fig.add_subplot(212)
 
         calc._log('Plotting force errors...', tic='force-plot')
-        ax.plot(np.hstack(force_data.values())[0].flatten(),
-                np.hstack(force_data.values())[2].flatten(), color)
+        ax.plot(
+            np.hstack(force_data.values())[0].flatten(),
+            np.hstack(force_data.values())[2].flatten(), color)
         # draw horizontal line for rmse
-        ax.plot([min_act_force, max_act_force],
-                [force_rmse, force_rmse],
-                color='black',
-                linestyle='dashed',
-                lw=1,)
-        ax.text(max_act_force,
-                force_rmse,
-                'force rmse = %5.4f' % force_rmse,
-                ha='right',
-                va='bottom',
-                color='black',)
+        ax.plot(
+            [min_act_force, max_act_force],
+            [force_rmse, force_rmse],
+            color='black',
+            linestyle='dashed',
+            lw=1,
+        )
+        ax.text(
+            max_act_force,
+            force_rmse,
+            'force rmse = %5.4f' % force_rmse,
+            ha='right',
+            va='bottom',
+            color='black',
+        )
         ax.set_xlabel("ab initio force, eV/Ang")
         ax.set_ylabel("$|$ab initio force - Amp force$|$")
         ax.set_title("Forces")
@@ -463,13 +482,14 @@ def plot_parity_and_error(calc,
             return energy_data, force_data
 
 
-def calc_rmse(calc_paths,
-               images,
-               cores=None,
-               dblabel=None,
-               energy_coefficient=1.0,
-               force_coefficient=0.04,
-              ):
+def calc_rmse(
+        calc_paths,
+        images,
+        cores=None,
+        dblabel=None,
+        energy_coefficient=1.0,
+        force_coefficient=0.04,
+):
     """Calculates energy and force RMSEs for a set of Amp calculators. All
     calculators must have the same descriptors and models.
 
@@ -500,9 +520,13 @@ def calc_rmse(calc_paths,
     calcs = []
     calc = Amp.load(file=calc_paths[0], cores=cores, dblabel=dblabel)
     calcs.append(calc)
-    for i in range(1,len(calc_paths)):
-        calcs.append(Amp.load(file=calc_paths[i], cores=cores,
-                              dblabel=dblabel, logging=False))
+    for i in range(1, len(calc_paths)):
+        calcs.append(
+            Amp.load(
+                file=calc_paths[i],
+                cores=cores,
+                dblabel=dblabel,
+                logging=False))
         calc._log('Loaded file: %s' % calc_paths[i])
 
     if force_coefficient == 0.:
@@ -527,12 +551,13 @@ def calc_rmse(calc_paths,
         log=calc._log,
         calculate_derivatives=calculate_derivatives)
 
-    lossfunction = LossFunction(energy_coefficient=energy_coefficient,
-                                force_coefficient=force_coefficient,
-                                parallel=calc._parallel,
-                                raise_ConvergenceOccurred=False,
-                                convergence=convergence,
-                                )
+    lossfunction = LossFunction(
+        energy_coefficient=energy_coefficient,
+        force_coefficient=force_coefficient,
+        parallel=calc._parallel,
+        raise_ConvergenceOccurred=False,
+        convergence=convergence,
+    )
     calc.model.lossfunction = lossfunction
 
     if force_coefficient == 0.:
@@ -555,8 +580,7 @@ def calc_rmse(calc_paths,
         steps.append(int(os.path.basename(calc_paths[i])[:-4]))
         vector = calcs[i].model.vector.copy()
         results = calc.model.lossfunction.get_loss(
-                      vector,
-                      lossprime=calculate_derivatives)
+            vector, lossprime=calculate_derivatives)
         loss.append(results['loss'])
         energy_loss.append(results['energy_loss'])
         force_loss.append(results['force_loss'])
@@ -564,15 +588,15 @@ def calc_rmse(calc_paths,
         force_maxresid.append(results['force_maxresid'])
         energy_rmse.append(np.sqrt(energy_loss[i] / len(images)))
         if force_coefficient == 0.:
-            calc._log('%5i %19s %12.4e   %10.4e   %10.4e' %
-                      (steps[i], now(), loss[i], energy_rmse[i],
-                       energy_maxresid[i]))
+            calc._log(
+                '%5i %19s %12.4e   %10.4e   %10.4e' %
+                (steps[i], now(), loss[i], energy_rmse[i], energy_maxresid[i]))
         else:
             force_rmse.append(np.sqrt(force_loss[i] / len(images)))
             calc._log('%5i %19s %12.4e   %10.4e  '
                       ' %10.4e   %10.4e   %10.4e' %
                       (steps[i], now(), loss[i], energy_rmse[i],
-                       energy_maxresid[i], force_rmse[i] ,force_maxresid[i]))
+                       energy_maxresid[i], force_rmse[i], force_maxresid[i]))
 
     data = {}
     data['steps'] = steps
@@ -617,8 +641,7 @@ def read_trainlog(logfile, verbose=True, multiple=0):
     if multiple is True:
         datalist = []
         for index in range(len(multiple_starts)):
-            datalist.append(read_trainlog(logfile, verbose,
-                                          multiple=index))
+            datalist.append(read_trainlog(logfile, verbose, multiple=index))
         return datalist
     else:
         lines = lines[multiple_starts[multiple]:]
@@ -783,28 +806,35 @@ def plot_convergence(data, plotfile='convergence.pdf'):
     lm, rm, bm, tm, vg, tb = 0.12, 0.05, 0.08, 0.03, 0.08, 4.
     bottomaxheight = (1. - bm - tm - vg) / (tb + 1.)
 
-    ax = fig.add_axes((lm, bm + bottomaxheight + vg,
-                       1. - lm - rm, tb * bottomaxheight))
+    ax = fig.add_axes((lm, bm + bottomaxheight + vg, 1. - lm - rm,
+                       tb * bottomaxheight))
     ax.semilogy(steps, d['es'], 'b', lw=2, label='energy rmse')
     ax.semilogy(steps, d['emrs'], 'b:', lw=2, label='energy maxresid')
     if d['force_rmse']:
         ax.semilogy(steps, d['fs'], 'g', lw=2, label='force rmse')
         ax.semilogy(steps, d['fmrs'], 'g:', lw=2, label='force maxresid')
-    ax.semilogy(steps, d['costfxns'], color='0.5', lw=2,
-                label='loss function')
+    ax.semilogy(steps, d['costfxns'], color='0.5', lw=2, label='loss function')
     # Targets.
     if d['energy_rmse']:
         ax.semilogy([steps[0], steps[-1]], [d['energy_rmse']] * 2,
-                    color='b', linestyle='-', alpha=0.5)
+                    color='b',
+                    linestyle='-',
+                    alpha=0.5)
     if d['energy_maxresid']:
         ax.semilogy([steps[0], steps[-1]], [d['energy_maxresid']] * 2,
-                    color='b', linestyle=':', alpha=0.5)
+                    color='b',
+                    linestyle=':',
+                    alpha=0.5)
     if d['force_rmse']:
         ax.semilogy([steps[0], steps[-1]], [d['force_rmse']] * 2,
-                    color='g', linestyle='-', alpha=0.5)
+                    color='g',
+                    linestyle='-',
+                    alpha=0.5)
     if d['force_maxresid']:
         ax.semilogy([steps[0], steps[-1]], [d['force_maxresid']] * 2,
-                    color='g', linestyle=':', alpha=0.5)
+                    color='g',
+                    linestyle=':',
+                    alpha=0.5)
     ax.set_ylabel('error')
     ax.legend(loc='best', fontsize=9.)
     if len(breaks) > 0:
@@ -815,12 +845,12 @@ def plot_convergence(data, plotfile='convergence.pdf'):
     if d['force_rmse']:
         # Loss function component plot.
         axf = fig.add_axes((lm, bm, 1. - lm - rm, bottomaxheight))
-        axf.fill_between(x=np.array(steps), y1=d['costfxnEs'],
-                         color='blue')
-        axf.fill_between(x=np.array(steps), y1=d['costfxnEs'],
-                         y2=np.array(d['costfxnEs']) +
-                         np.array(d['costfxnFs']),
-                         color='green')
+        axf.fill_between(x=np.array(steps), y1=d['costfxnEs'], color='blue')
+        axf.fill_between(
+            x=np.array(steps),
+            y1=d['costfxnEs'],
+            y2=np.array(d['costfxnEs']) + np.array(d['costfxnFs']),
+            color='green')
         axf.set_ylabel('loss function component')
         axf.set_xlabel('loss function call')
         axf.set_ylim(0, 1)

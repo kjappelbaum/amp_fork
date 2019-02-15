@@ -8,6 +8,7 @@ from . import LossFunction, calculate_fingerprints_range, Model
 from ..regression import Regressor
 from ..utilities import Logger, hash_images, make_filename
 from .. import Amp
+from numba import jit
 
 
 class NeuralNetwork(Model):
@@ -105,19 +106,31 @@ class NeuralNetwork(Model):
         RuntimeError, NotImplementedError
     """
 
-    def __init__(self, hiddenlayers=(5, 5), activation='tanh', weights=None,
-                 scalings=None, fprange=None, mode=None, version=None,
-                 regressor=None, lossfunction=None, fortran=True,
-                 checkpoints=100, randomseed=None, prescale=False):
+    def __init__(self,
+                 hiddenlayers=(5, 5),
+                 activation='tanh',
+                 weights=None,
+                 scalings=None,
+                 fprange=None,
+                 mode=None,
+                 version=None,
+                 regressor=None,
+                 lossfunction=None,
+                 fortran=True,
+                 checkpoints=100,
+                 randomseed=None,
+                 prescale=False):
 
         # Version check, particularly if restarting.
-        compatibleversions = ['2015.12', ]
+        compatibleversions = [
+            '2015.12',
+        ]
         if (version is not None) and version not in compatibleversions:
-            raise RuntimeError('Error: Trying to use NeuralNetwork'
-                               ' version %s, but this module only supports'
-                               ' versions %s. You may need an older or '
-                               'newer version of Amp.' %
-                               (version, compatibleversions))
+            raise RuntimeError(
+                'Error: Trying to use NeuralNetwork'
+                ' version %s, but this module only supports'
+                ' versions %s. You may need an older or '
+                'newer version of Amp.' % (version, compatibleversions))
         else:
             version = compatibleversions[-1]
 
@@ -150,13 +163,14 @@ class NeuralNetwork(Model):
         self.randomseed = randomseed
         self.prescale = prescale
 
-    def fit(self,
+    def fit(
+            self,
             trainingimages,
             descriptor,
             log,
             parallel,
             only_setup=False,
-            ):
+    ):
         """Fit the model parameters such that the fingerprints can be used to
         describe the energies in trainingimages. log is the logging object.
         descriptor is a descriptor object, as would be in calc.descriptor.
@@ -208,8 +222,10 @@ class NeuralNetwork(Model):
         if p.mode == 'atom-centered':
             # If hiddenlayers is a tuple/list, convert to a dictionary.
             if not hasattr(p.hiddenlayers, 'keys'):
-                p.hiddenlayers = {element: p.hiddenlayers
-                                  for element in p.fprange.keys()}
+                p.hiddenlayers = {
+                    element: p.hiddenlayers
+                    for element in p.fprange.keys()
+                }
 
         log('Hidden-layer structure:')
         if p.mode == 'image-centered':
@@ -225,8 +241,9 @@ class NeuralNetwork(Model):
             log('Initial weights already present.')
 
         if p.scalings is None and self.prescale is True:
-            self.log('Finding good guesses for scaling intercepts...',
-                     tic='prescale')
+            self.log(
+                'Finding good guesses for scaling intercepts...',
+                tic='prescale')
             self.prescale_intercepts(trainingimages)
             self.log(' Atomic energies found:')
             for element in self.parameters.scalings.keys():
@@ -236,8 +253,10 @@ class NeuralNetwork(Model):
 
         if p.scalings is None:
             log('Initializing with random scalings.')
-            self.randomize(weights=False, trainingimages=trainingimages,
-                           seed=self.randomseed)
+            self.randomize(
+                weights=False,
+                trainingimages=trainingimages,
+                seed=self.randomseed)
         else:
             log('Initial scalings already present.')
 
@@ -261,27 +280,36 @@ class NeuralNetwork(Model):
         elements = self.parameters.fprange.keys()
 
         def get_rmse_per_atom(scalings_list):
-            scalings = {element: scaling for
-                        (element, scaling) in zip(elements, scalings_list)}
+            scalings = {
+                element: scaling
+                for (element, scaling) in zip(elements, scalings_list)
+            }
             calc = OffsetCalculator(scalings=scalings)
             msea = 0.  # mean-squared (error per atom)
             for image in trainingimages.values():
                 true_energy = image.get_potential_energy(
-                        apply_constraint=False)
+                    apply_constraint=False)
                 predicted_energy = calc.get_potential_energy(image)
                 msea += ((true_energy - predicted_energy) / len(image))**2
             return np.sqrt(msea)  # root-mean-squared (error per atom)
 
-        answer = fmin(get_rmse_per_atom, x0=[1.]*len(elements))
-        scaling_intercepts = {element: intercept for element, intercept in
-                              zip(elements, answer)}
+        answer = fmin(get_rmse_per_atom, x0=[1.] * len(elements))
+        scaling_intercepts = {
+            element: intercept
+            for element, intercept in zip(elements, answer)
+        }
         p = self.parameters
         p.scalings = {}
         for element in elements:
-            p.scalings[element] = {'intercept': scaling_intercepts[element],
-                                   'slope': 1.}
+            p.scalings[element] = {
+                'intercept': scaling_intercepts[element],
+                'slope': 1.
+            }
 
-    def randomize(self, trainingimages=None, weights=True, scalings=True,
+    def randomize(self,
+                  trainingimages=None,
+                  weights=True,
+                  scalings=True,
                   seed=None):
         """Randomizes the model parameters (i.e., re-initializes them);
         this is typically used just before training.
@@ -306,12 +334,16 @@ class NeuralNetwork(Model):
             if p.mode == 'image-centered':
                 raise NotImplementedError('Needs to be coded.')
             elif p.mode == 'atom-centered':
-                len_of_fps = {element: len(p.fprange[element])
-                              for element in p.fprange.keys()}
-                p.weights = get_random_weights(hiddenlayers=p.hiddenlayers,
-                                               activation=p.activation,
-                                               len_of_fps=len_of_fps,
-                                               seed=seed,)
+                len_of_fps = {
+                    element: len(p.fprange[element])
+                    for element in p.fprange.keys()
+                }
+                p.weights = get_random_weights(
+                    hiddenlayers=p.hiddenlayers,
+                    activation=p.activation,
+                    len_of_fps=len_of_fps,
+                    seed=seed,
+                )
         if scalings:
             if p.mode == 'image-centered':
                 raise NotImplementedError('Need to code.')
@@ -330,7 +362,7 @@ class NeuralNetwork(Model):
         elif self.lossfunction.parameters['force_coefficient'] > 0.0:
             forcetraining = True
         else:
-            forcetraining = False # fallback in case of invalid input
+            forcetraining = False  # fallback in case of invalid input
         return forcetraining
 
     @property
@@ -385,8 +417,8 @@ class NeuralNetwork(Model):
                     path = os.path.join(self.parent.label + '-checkpoints')
                     if not os.path.exists(path):
                         os.mkdir(path)
-                    filename = os.path.join(path,
-                                            '{}.amp'.format(int(self.lossfunction._step)))
+                    filename = os.path.join(
+                        path, '{}.amp'.format(int(self.lossfunction._step)))
                 else:
                     filename = make_filename(self.parent.label,
                                              '-checkpoint.amp')
@@ -398,7 +430,6 @@ class NeuralNetwork(Model):
             return result['loss'], result['dloss_dparameters']
         else:
             return result['loss']
-
 
     def _load_from_checkpoints(self):
         """If checkpoints are present, this will load from them and therefore
@@ -444,7 +475,12 @@ class NeuralNetwork(Model):
             lossfunction.attach_model(self)  # Allows access to methods.
         self._lossfunction = lossfunction
 
-    def calculate_atomic_energy(self, afp, index, symbol,):
+    def calculate_atomic_energy(
+            self,
+            afp,
+            index,
+            symbol,
+    ):
         """
         Given input to the neural network, output (which corresponds to energy)
         is calculated about the specified atom. The sum of these for all
@@ -472,16 +508,25 @@ class NeuralNetwork(Model):
                                  ' called in atom-centered mode.')
 
         scaling = self.parameters.scalings[symbol]
-        outputs = calculate_nodal_outputs(self.parameters, afp, symbol,)
+        outputs = calculate_nodal_outputs(
+            self.parameters,
+            afp,
+            symbol,
+        )
         atomic_amp_energy = scaling['slope'] * \
             float(outputs[len(outputs) - 1]) + \
             scaling['intercept']
 
         return atomic_amp_energy
 
-    def calculate_force(self, afp, derafp,
-                        direction,
-                        nindex=None, nsymbol=None,):
+    def calculate_force(
+            self,
+            afp,
+            derafp,
+            direction,
+            nindex=None,
+            nsymbol=None,
+    ):
         """Given derivative of input to the neural network, derivative of output
         (which corresponds to forces) is calculated.
 
@@ -509,12 +554,20 @@ class NeuralNetwork(Model):
         """
 
         scaling = self.parameters.scalings[nsymbol]
-        outputs = calculate_nodal_outputs(self.parameters, afp, nsymbol,)
-        dOutputs_dInputs = calculate_dOutputs_dInputs(self.parameters, derafp,
-                                                      outputs, nsymbol,)
+        outputs = calculate_nodal_outputs(
+            self.parameters,
+            afp,
+            nsymbol,
+        )
+        dOutputs_dInputs = calculate_dOutputs_dInputs(
+            self.parameters,
+            derafp,
+            outputs,
+            nsymbol,
+        )
 
-        force = float((scaling['slope'] *
-                       dOutputs_dInputs[len(dOutputs_dInputs) - 1][0]))
+        force = float((
+            scaling['slope'] * dOutputs_dInputs[len(dOutputs_dInputs) - 1][0]))
         # Force is multiplied by -1, because it is -dE/dx and not dE/dx.
         return -force
 
@@ -545,7 +598,7 @@ class NeuralNetwork(Model):
         scaling = p.scalings[symbol]
         # W dictionary initiated.
         W = {}
-        for elm in p.weights.keys():
+        for elm in p.weights:
             W[elm] = {}
             weight = p.weights[elm]
             for _ in range(len(weight)):
@@ -556,15 +609,19 @@ class NeuralNetwork(Model):
         dAtomicEnergy_dWeights, dAtomicEnergy_dScalings = \
             self.ravel.to_dicts(dAtomicEnergy_dParameters)
 
-        outputs = calculate_nodal_outputs(self.parameters, afp, symbol,)
+        outputs = calculate_nodal_outputs(
+            self.parameters,
+            afp,
+            symbol,
+        )
         ohat, D, delta = calculate_ohat_D_delta(self.parameters, outputs, W)
 
         dAtomicEnergy_dScalings[symbol]['intercept'] = 1.
-        dAtomicEnergy_dScalings[symbol][
-            'slope'] = float(outputs[len(outputs) - 1])
+        dAtomicEnergy_dScalings[symbol]['slope'] = float(
+            outputs[len(outputs) - 1])
         for k in range(1, len(outputs)):
             dAtomicEnergy_dWeights[symbol][k] = float(scaling['slope']) * \
-                np.dot(np.matrix(ohat[k - 1]).T, np.matrix(delta[k]).T)
+                np.dot(np.array(ohat[k - 1]).T, np.array(delta[k]).T)
 
         dAtomicEnergy_dParameters = \
             self.ravel.to_vector(
@@ -572,9 +629,15 @@ class NeuralNetwork(Model):
 
         return dAtomicEnergy_dParameters
 
-    def calculate_dForce_dParameters(self, afp, derafp,
-                                     direction,
-                                     nindex=None, nsymbol=None,):
+    @jit
+    def calculate_dForce_dParameters(
+            self,
+            afp,
+            derafp,
+            direction,
+            nindex=None,
+            nsymbol=None,
+    ):
         """Returns the derivative of force square error with respect to
         variables.
 
@@ -618,17 +681,25 @@ class NeuralNetwork(Model):
         dForce_dWeights, dForce_dScalings = \
             self.ravel.to_dicts(dForce_dParameters)
 
-        outputs = calculate_nodal_outputs(self.parameters, afp, nsymbol,)
+        outputs = calculate_nodal_outputs(
+            self.parameters,
+            afp,
+            nsymbol,
+        )
         ohat, D, delta = calculate_ohat_D_delta(self.parameters, outputs, W)
-        dOutputs_dInputs = calculate_dOutputs_dInputs(self.parameters, derafp,
-                                                      outputs, nsymbol,)
+        dOutputs_dInputs = calculate_dOutputs_dInputs(
+            self.parameters,
+            derafp,
+            outputs,
+            nsymbol,
+        )
 
         N = len(outputs) - 2
         dD_dInputs = {}
         for k in range(1, N + 2):
             # Calculating coordinate derivative of D matrix
-            dD_dInputs[k] = np.zeros(shape=(np.size(outputs[k]),
-                                            np.size(outputs[k])))
+            dD_dInputs[k] = np.zeros(
+                shape=(np.size(outputs[k]), np.size(outputs[k])))
             for j in range(np.size(outputs[k])):
                 if activation == 'linear':  # linear
                     dD_dInputs[k][j, j] = 0.
@@ -661,10 +732,10 @@ class NeuralNetwork(Model):
                 dOhat_dInputs[k - 1][count] = dOutputs_dInputs[k - 1][count]
             dOhat_dInputs[k - 1][count + 1] = 0.
             dOutput_dInputsdWeights[k] = \
-                np.dot(np.matrix(dOhat_dInputs[k - 1]).T,
-                       np.matrix(delta[k]).T) + \
-                np.dot(np.matrix(ohat[k - 1]).T,
-                       np.matrix(dDelta_dInputs[k]).T)
+                np.dot(np.array(dOhat_dInputs[k - 1]).T,
+                       np.array(delta[k]).T) + \
+                np.dot(np.array(ohat[k - 1]).T,
+                       np.array(dDelta_dInputs[k]).T)
 
         for k in range(1, N + 2):
             dForce_dWeights[nsymbol][k] = float(scaling['slope']) * \
@@ -677,10 +748,15 @@ class NeuralNetwork(Model):
 
         return dForce_dParameters
 
+
 # Auxiliary functions #########################################################
 
 
-def calculate_nodal_outputs(parameters, afp, symbol,):
+def calculate_nodal_outputs(
+        parameters,
+        afp,
+        symbol,
+):
     """
     Given input to the neural network, output (which corresponds to energy)
     is calculated about the specified atom. The sum of these for all
@@ -712,8 +788,8 @@ def calculate_nodal_outputs(parameters, afp, symbol,):
     # Scale the fingerprints to be in [-1, 1] range.
     for _ in range(np.shape(_afp)[0]):
         if (fprange[_][1] - fprange[_][0]) > (10.**(-8.)):
-            _afp[_] = -1.0 + 2.0 * ((_afp[_] - fprange[_][0]) /
-                                    (fprange[_][1] - fprange[_][0]))
+            _afp[_] = -1.0 + 2.0 * (
+                (_afp[_] - fprange[_][0]) / (fprange[_][1] - fprange[_][0]))
 
     # Calculate node values.
     o = {}  # node values
@@ -778,7 +854,13 @@ def calculate_nodal_outputs(parameters, afp, symbol,):
     return o
 
 
-def calculate_dOutputs_dInputs(parameters, derafp, outputs, nsymbol,):
+@jit
+def calculate_dOutputs_dInputs(
+        parameters,
+        derafp,
+        outputs,
+        nsymbol,
+):
     """
     Calculates the derivative of the neural network nodes with respect
     to the inputs.
@@ -818,8 +900,9 @@ def calculate_dOutputs_dInputs(parameters, derafp, outputs, nsymbol,):
     layer = 0  # input layer
     for hiddenlayer in hiddenlayers[0:]:
         layer += 1
-        temp = np.dot(np.matrix(dOutputs_dInputs[layer - 1]),
-                      np.delete(weight[layer], -1, 0))
+        temp = np.dot(
+            np.array(dOutputs_dInputs[layer - 1]),
+            np.delete(weight[layer], -1, 0))
         dOutputs_dInputs[layer] = [None] * np.size(outputs[layer])
         bound = np.size(outputs[layer])
         for j in range(bound):
@@ -832,8 +915,8 @@ def calculate_dOutputs_dInputs(parameters, derafp, outputs, nsymbol,):
                 dOutputs_dInputs[layer][j] = float(temp[0, j]) * \
                     float(1. - outputs[layer][0, j] * outputs[layer][0, j])
     layer += 1  # output layer
-    temp = np.dot(np.matrix(dOutputs_dInputs[layer - 1]),
-                  np.delete(weight[layer], -1, 0))
+    temp = np.dot(
+        np.array(dOutputs_dInputs[layer - 1]), np.delete(weight[layer], -1, 0))
     if activation == 'linear':  # linear function
         dOutputs_dInputs[layer] = float(temp)
     elif activation == 'sigmoid':  # sigmoid function
@@ -900,8 +983,11 @@ def calculate_ohat_D_delta(parameters, outputs, W):
     return ohat, D, delta
 
 
-def get_random_weights(hiddenlayers, activation,
-                       len_of_fps=None, no_of_atoms=None, seed=None):
+def get_random_weights(hiddenlayers,
+                       activation,
+                       len_of_fps=None,
+                       no_of_atoms=None,
+                       seed=None):
     """Generates random weight arrays from variables.
 
     hiddenlayers: dict
@@ -959,15 +1045,13 @@ def get_random_weights(hiddenlayers, activation,
             nn_structure = ([3 * no_of_atoms] + [hiddenlayers] + [1])
         else:
             nn_structure = (
-                [3 * no_of_atoms] +
-                [layer for layer in hiddenlayers] + [1])
+                [3 * no_of_atoms] + [layer for layer in hiddenlayers] + [1])
         weight = {}
         # Instead try Andrew Ng coursera approach. +/- epsilon
         # epsilon = sqrt(6./(n_i + n_o))
         # where the n's are the number of input and output nodes.
         # Note: need to double that here with the math below.
-        epsilon = np.sqrt(6. / (nn_structure[0] +
-                                nn_structure[1]))
+        epsilon = np.sqrt(6. / (nn_structure[0] + nn_structure[1]))
         normalized_arg_range = 2. * epsilon
         weight[1] = rs.random_sample((3 * no_of_atoms + 1,
                                       nn_structure[1])) * \
@@ -975,16 +1059,15 @@ def get_random_weights(hiddenlayers, activation,
             normalized_arg_range / 2.
         len_of_hiddenlayers = len(list(nn_structure)) - 3
         for layer in range(len_of_hiddenlayers):
-            epsilon = np.sqrt(6. / (nn_structure[layer + 1] +
-                                    nn_structure[layer + 2]))
+            epsilon = np.sqrt(
+                6. / (nn_structure[layer + 1] + nn_structure[layer + 2]))
             normalized_arg_range = 2. * epsilon
             weight[layer + 2] = rs.random_sample(
                 (nn_structure[layer + 1] + 1,
                  nn_structure[layer + 2])) * \
                 normalized_arg_range - normalized_arg_range / 2.
 
-        epsilon = np.sqrt(6. / (nn_structure[-2] +
-                                nn_structure[-1]))
+        epsilon = np.sqrt(6. / (nn_structure[-2] + nn_structure[-1]))
         normalized_arg_range = 2. * epsilon
         weight[len(list(nn_structure)) - 1] = \
             rs.random_sample((nn_structure[-2] + 1, 1)) \
@@ -1002,22 +1085,22 @@ def get_random_weights(hiddenlayers, activation,
         for element in sorted(elements):
             _len_of_fps = len_of_fps[element]
             if isinstance(hiddenlayers[element], int):
-                nn_structure[element] = ([_len_of_fps] +
-                                         [hiddenlayers[element]] + [1])
+                nn_structure[element] = (
+                    [_len_of_fps] + [hiddenlayers[element]] + [1])
             else:
                 nn_structure[element] = (
-                    [_len_of_fps] +
-                    [layer for layer in hiddenlayers[element]] + [1])
+                    [_len_of_fps] + [layer
+                                     for layer in hiddenlayers[element]] + [1])
             weight[element] = {}
             # Instead try Andrew Ng coursera approach. +/- epsilon
             # epsilon = sqrt(6./(n_i + n_o))
             # where the n's are the number of input and output nodes.
             # Note: need to double that here with the math below.
-            epsilon = np.sqrt(6. / (nn_structure[element][0] +
-                                    nn_structure[element][1]))
+            epsilon = np.sqrt(
+                6. / (nn_structure[element][0] + nn_structure[element][1]))
             normalized_arg_range = 2. * epsilon
-            weight[element][1] = (rs.random_sample(
-                (_len_of_fps + 1, nn_structure[element][1])) *
+            weight[element][1] = (
+                rs.random_sample((_len_of_fps + 1, nn_structure[element][1])) *
                 normalized_arg_range - normalized_arg_range / 2.)
             len_of_hiddenlayers = len(list(nn_structure[element])) - 3
             for layer in range(len_of_hiddenlayers):
@@ -1029,8 +1112,8 @@ def get_random_weights(hiddenlayers, activation,
                      nn_structure[element][layer + 2])) * \
                     normalized_arg_range - normalized_arg_range / 2.
 
-            epsilon = np.sqrt(6. / (nn_structure[element][-2] +
-                                    nn_structure[element][-1]))
+            epsilon = np.sqrt(
+                6. / (nn_structure[element][-2] + nn_structure[element][-1]))
             normalized_arg_range = 2. * epsilon
             weight[element][len(list(nn_structure[element])) - 1] = \
                 rs.random_sample((nn_structure[element][-2] + 1, 1)) \
@@ -1068,10 +1151,12 @@ def get_initial_scalings(images, activation, elements=None, seed=None):
 
     no_of_images = len(hashs)
 
-    max_act_energy = max(image.get_potential_energy(apply_constraint=False)
-                         for image in images.values())
-    min_act_energy = min(image.get_potential_energy(apply_constraint=False)
-                         for image in images.values())
+    max_act_energy = max(
+        image.get_potential_energy(apply_constraint=False)
+        for image in images.values())
+    min_act_energy = min(
+        image.get_potential_energy(apply_constraint=False)
+        for image in images.values())
 
     for count in range(no_of_images):
         hash = hashs[count]
@@ -1094,16 +1179,16 @@ def get_initial_scalings(images, activation, elements=None, seed=None):
         scaling = {}
         if activation == 'sigmoid':  # sigmoid activation function
             scaling['intercept'] = min_act_energy_per_atom
-            scaling['slope'] = (max_act_energy_per_atom -
-                                min_act_energy_per_atom)
+            scaling['slope'] = (
+                max_act_energy_per_atom - min_act_energy_per_atom)
         elif activation == 'tanh':  # tanh activation function
-            scaling['intercept'] = (max_act_energy_per_atom +
-                                    min_act_energy_per_atom) / 2.
-            scaling['slope'] = (max_act_energy_per_atom -
-                                min_act_energy_per_atom) / 2.
+            scaling['intercept'] = (
+                max_act_energy_per_atom + min_act_energy_per_atom) / 2.
+            scaling['slope'] = (
+                max_act_energy_per_atom - min_act_energy_per_atom) / 2.
         elif activation == 'linear':  # linear activation function
-            scaling['intercept'] = (max_act_energy_per_atom +
-                                    min_act_energy_per_atom) / 2.
+            scaling['intercept'] = (
+                max_act_energy_per_atom + min_act_energy_per_atom) / 2.
             scaling['slope'] = (10. ** (-10.)) * \
                 (max_act_energy_per_atom -
                  min_act_energy_per_atom) / 2.
@@ -1114,16 +1199,16 @@ def get_initial_scalings(images, activation, elements=None, seed=None):
             scaling[element] = {}
             if activation == 'sigmoid':  # sigmoid activation function
                 scaling[element]['intercept'] = min_act_energy_per_atom
-                scaling[element]['slope'] = (max_act_energy_per_atom -
-                                             min_act_energy_per_atom)
+                scaling[element]['slope'] = (
+                    max_act_energy_per_atom - min_act_energy_per_atom)
             elif activation == 'tanh':  # tanh activation function
-                scaling[element]['intercept'] = (max_act_energy_per_atom +
-                                                 min_act_energy_per_atom) / 2.
-                scaling[element]['slope'] = (max_act_energy_per_atom -
-                                             min_act_energy_per_atom) / 2.
+                scaling[element]['intercept'] = (
+                    max_act_energy_per_atom + min_act_energy_per_atom) / 2.
+                scaling[element]['slope'] = (
+                    max_act_energy_per_atom - min_act_energy_per_atom) / 2.
             elif activation == 'linear':  # linear activation function
-                scaling[element]['intercept'] = (max_act_energy_per_atom +
-                                                 min_act_energy_per_atom) / 2.
+                scaling[element]['intercept'] = (
+                    max_act_energy_per_atom + min_act_energy_per_atom) / 2.
                 scaling[element]['slope'] = (10. ** (-10.)) * \
                                             (max_act_energy_per_atom -
                                              min_act_energy_per_atom) / 2.
@@ -1150,15 +1235,16 @@ class Raveler:
         for key1 in sorted(weights.keys()):  # element
             for key2 in sorted(weights[key1].keys()):  # layer
                 value = weights[key1][key2]
-                self.weightskeys.append({'key1': key1,
-                                         'key2': key2,
-                                         'shape': np.array(value).shape,
-                                         'size': np.array(value).size})
+                self.weightskeys.append({
+                    'key1': key1,
+                    'key2': key2,
+                    'shape': np.array(value).shape,
+                    'size': np.array(value).size
+                })
                 self.count += np.array(weights[key1][key2]).size
         for key1 in sorted(scalings.keys()):  # element
             for key2 in sorted(scalings[key1].keys()):  # slope / intercept
-                self.scalingskeys.append({'key1': key1,
-                                          'key2': key2})
+                self.scalingskeys.append({'key1': key1, 'key2': key2})
                 self.count += 1
         self.vector = np.zeros(self.count)
 
@@ -1205,11 +1291,11 @@ class Raveler:
             count += 1
         return weights, scalings
 
+
 # Analysis tools ##############################################################
 
 
 class NodePlot:
-
     """Creates plots to visualize the output of the nodes in the neural
     networks.
 
@@ -1235,16 +1321,16 @@ class NodePlot:
         calc = self.calc
         log = Logger('develop.log')
         images = hash_images(images, log=log)
-        calc.descriptor.calculate_fingerprints(images=images,
-                                               parallel={'cores': 1},
-                                               log=log,
-                                               calculate_derivatives=False)
+        calc.descriptor.calculate_fingerprints(
+            images=images,
+            parallel={'cores': 1},
+            log=log,
+            calculate_derivatives=False)
         for hash in images.keys():
             fingerprints = calc.descriptor.fingerprints[hash]
             for fp in fingerprints:
-                outputs = calculate_nodal_outputs(calc.model.parameters,
-                                                  afp=fp[1],
-                                                  symbol=fp[0])
+                outputs = calculate_nodal_outputs(
+                    calc.model.parameters, afp=fp[1], symbol=fp[0])
                 self._accumulate(symbol=fp[0], output=outputs)
 
         self._finalize_table()
@@ -1270,19 +1356,24 @@ class NodePlot:
 
         d = self.data[symbol]
         for layer in range(1 + d['header'][-1][0]):
-            ax = fig.add_axes((lm,
-                               1. - tm - axheight - (axheight + vg) * layer,
-                               axwidth, axheight))
-            indices = [_ for _, label in enumerate(d['header'])
-                       if label[0] == layer]
+            ax = fig.add_axes(
+                (lm, 1. - tm - axheight - (axheight + vg) * layer, axwidth,
+                 axheight))
+            indices = [
+                _ for _, label in enumerate(d['header']) if label[0] == layer
+            ]
             sub = d['table'][:, indices]
             ax.violinplot(dataset=sub, positions=range(len(indices)))
             ax.set_ylim(-1.2, 1.2)
             ax.set_xlim(-0.5, len(indices) - 0.5)
             ax.set_ylabel('Layer %i' % layer)
         ax.set_xlabel('node')
-        fig.text(0.5, 1. - 0.5 * tm, 'Node outputs for %s' % symbol,
-                 ha='center', va='center')
+        fig.text(
+            0.5,
+            1. - 0.5 * tm,
+            'Node outputs for %s' % symbol,
+            ha='center',
+            va='center')
 
         if save:
             fig.savefig(save)
@@ -1296,13 +1387,12 @@ class NodePlot:
 
         if symbol not in data:
             # Create headers, structure.
-            data[symbol] = {'header': [],
-                            'table': []}
+            data[symbol] = {'header': [], 'table': []}
             for layerkey in layerkeys:
                 v = output[layerkey]
                 v = v.reshape(v.size).tolist()
-                data[symbol]['header'].extend([(layerkey, _) for _ in
-                                              range(len(v))])
+                data[symbol]['header'].extend(
+                    [(layerkey, _) for _ in range(len(v))])
         # Add as a row to data table.
         row = []
         for layerkey in layerkeys:

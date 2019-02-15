@@ -17,8 +17,8 @@ except ImportError:
     # We're on ASE 3.9 or older
     from ase.version import version as aseversion
 
-from .utilities import (make_filename, hash_images, Logger, string2dict,
-                        logo, now, assign_cores, TrainingConvergenceError,
+from .utilities import (make_filename, hash_images, Logger, string2dict, logo,
+                        now, assign_cores, TrainingConvergenceError,
                         check_images)
 
 try:
@@ -33,13 +33,12 @@ else:
                            'with f2py as described in the README. '
                            'Correct version is %i.' % fmodules_version)
 
-version_file = os.path.join(os.path.split(os.path.abspath(__file__))[0],
-                            'VERSION')
+version_file = os.path.join(
+    os.path.split(os.path.abspath(__file__))[0], 'VERSION')
 _ampversion = open(version_file).read().strip()
 
 
 class Amp(Calculator, object):
-
     """Atomistic Machine-Learning Potential (Amp) ASE calculator
 
     Parameters
@@ -74,8 +73,15 @@ class Amp(Calculator, object):
     """
     implemented_properties = ['energy', 'forces']
 
-    def __init__(self, descriptor, model, label='amp', dblabel=None,
-                 cores=None, envcommand=None, logging=True, atoms=None):
+    def __init__(self,
+                 descriptor,
+                 model,
+                 label='amp',
+                 dblabel=None,
+                 cores=None,
+                 envcommand=None,
+                 logging=True,
+                 atoms=None):
 
         self.logging = logging
         Calculator.__init__(self, label=label, atoms=atoms)
@@ -223,8 +229,8 @@ class Amp(Calculator, object):
         # Create directories for output structure if needed.
         # Note ASE doesn't do this for us.
         if self.label:
-            if (self.directory != os.curdir and
-                    not os.path.isdir(self.directory)):
+            if (self.directory != os.curdir
+                    and not os.path.isdir(self.directory)):
                 os.makedirs(self.directory)
 
         if self.logging is True:
@@ -248,13 +254,11 @@ class Amp(Calculator, object):
 
         if properties == ['energy']:
             log('Calculating potential energy...', tic='pot-energy')
-            self.descriptor.calculate_fingerprints(images=images,
-                                                   log=log,
-                                                   calculate_derivatives=False)
+            self.descriptor.calculate_fingerprints(
+                images=images, log=log, calculate_derivatives=False)
             if self.model.__class__.__name__ != 'KernelRidge':
                 energy = self.model.calculate_energy(
-                        self.descriptor.fingerprints[key]
-                        )
+                    self.descriptor.fingerprints[key])
 
             else:  # KRR needs training images.
                 fingerprints = self.descriptor.fingerprints
@@ -263,24 +267,21 @@ class Amp(Calculator, object):
 
                 if isinstance(self.model.trainingimages, str):
                     trainingimages = hash_images(
-                            ase.io.Trajectory(self.model.trainingimages)
-                            )
+                        ase.io.Trajectory(self.model.trainingimages))
                 else:
                     trainingimages = hash_images(self.model.trainingimages)
 
                 self.descriptor.calculate_fingerprints(
-                        images=trainingimages,
-                        log=log,
-                        calculate_derivatives=False
-                        )
+                    images=trainingimages,
+                    log=log,
+                    calculate_derivatives=False)
                 fp_trainingimages = self.descriptor.fingerprints
 
                 energy = self.model.calculate_energy(
-                        fingerprints,
-                        hash=key,
-                        trainingimages=trainingimages,
-                        fp_trainingimages=fp_trainingimages
-                        )
+                    fingerprints,
+                    hash=key,
+                    trainingimages=trainingimages,
+                    fp_trainingimages=fp_trainingimages)
             self.results['energy'] = energy
             log('...potential energy calculated.', toc='pot-energy')
 
@@ -288,10 +289,7 @@ class Amp(Calculator, object):
             if self.model.__class__.__name__ != 'KernelRidge':
                 log('Calculating forces...', tic='forces')
                 self.descriptor.calculate_fingerprints(
-                        images=images,
-                        log=log,
-                        calculate_derivatives=True
-                        )
+                    images=images, log=log, calculate_derivatives=True)
                 forces = \
                     self.model.calculate_forces(
                         self.descriptor.fingerprints[key],
@@ -302,22 +300,15 @@ class Amp(Calculator, object):
             else:
                 log('Calculating forces...', tic='forces')
                 self.descriptor.calculate_fingerprints(
-                        images=images,
-                        log=log,
-                        calculate_derivatives=True
-                        )
+                    images=images, log=log, calculate_derivatives=True)
                 log('Loading the training set')
                 if isinstance(self.model.trainingimages, str):
                     trainingimages = hash_images(
-                            ase.io.Trajectory(self.model.trainingimages)
-                            )
+                        ase.io.Trajectory(self.model.trainingimages))
                 else:
                     trainingimages = hash_images(self.model.trainingimages)
                 self.descriptor.calculate_fingerprints(
-                        images=trainingimages,
-                        log=log,
-                        calculate_derivatives=True
-                        )
+                    images=trainingimages, log=log, calculate_derivatives=True)
                 t_descriptor = self.descriptor
                 forces = \
                     self.model.calculate_forces(
@@ -330,10 +321,11 @@ class Amp(Calculator, object):
                 self.results['forces'] = forces
                 log('...forces calculated.', toc='forces')
 
-    def train(self,
-              images,
-              overwrite=False,
-              ):
+    def train(
+            self,
+            images,
+            overwrite=False,
+    ):
         """Fits the model to the training images.
 
         Parameters
@@ -360,32 +352,37 @@ class Amp(Calculator, object):
         train_forces = self.model.forcetraining  # True / False
         check_images(images, forces=train_forces)
         self.descriptor.calculate_fingerprints(
-                images=images,
-                parallel=self._parallel,
-                log=log,
-                calculate_derivatives=train_forces)
+            images=images,
+            parallel=self._parallel,
+            log=log,
+            calculate_derivatives=train_forces)
 
         log('\nModel fitting\n=============')
-        result = self.model.fit(trainingimages=images,
-                                descriptor=self.descriptor,
-                                log=log,
-                                parallel=self._parallel)
+        result = self.model.fit(
+            trainingimages=images,
+            descriptor=self.descriptor,
+            log=log,
+            parallel=self._parallel)
 
         if result is True:
             log('Amp successfully trained. Saving current parameters.')
             filename = self.label + '.amp'
             self.reset()  # Clears any calculation results.
+            complete = True
         else:
             log('Amp not trained successfully. Saving current parameters.')
             filename = make_filename(self.label, '-untrained-parameters.amp')
+
         filename = self.save(filename, overwrite)
         log('Parameters saved in file "%s".' % filename)
-        log("This file can be opened with `calc = Amp.load('%s')`" %
-            filename)
+        log("This file can be opened with `calc = Amp.load('%s')`" % filename)
+        log('THIS IS THE NEW VERSION')
         if result is False:
-            raise TrainingConvergenceError('Amp did not converge upon '
-                                           'training. See log file for'
-                                           ' more information.')
+            complete = False
+        #    raise TrainingConvergenceError('Amp did not converge upon '
+        #                                   'training. See log file for'
+        #                                   ' more information.')
+        return {'complete': complete}
 
     def save(self, filename, overwrite=False):
         """Saves the calculator in a way that it can be re-opened with
@@ -401,22 +398,20 @@ class Amp(Calculator, object):
         if os.path.exists(filename):
             if overwrite is False:
                 oldfilename = filename
-                filename = tempfile.NamedTemporaryFile(mode='w', delete=False,
-                                                       suffix='.amp').name
+                filename = tempfile.NamedTemporaryFile(
+                    mode='w', delete=False, suffix='.amp').name
                 self._log('File "%s" exists. Instead saving to "%s".' %
                           (oldfilename, filename))
             else:
-                oldfilename = tempfile.NamedTemporaryFile(mode='w',
-                                                          delete=False,
-                                                          suffix='.amp').name
+                oldfilename = tempfile.NamedTemporaryFile(
+                    mode='w', delete=False, suffix='.amp').name
 
-                self._log('Overwriting file: "%s". Moving original to "%s".'
-                          % (filename, oldfilename))
+                self._log('Overwriting file: "%s". Moving original to "%s".' %
+                          (filename, oldfilename))
                 shutil.move(filename, oldfilename)
         descriptor = self.descriptor.tostring()
         model = self.model.tostring()
-        p = Parameters({'descriptor': descriptor,
-                        'model': model})
+        p = Parameters({'descriptor': descriptor, 'model': model})
         p.write(filename)
         return filename
 
@@ -450,21 +445,21 @@ class Amp(Calculator, object):
         log('Python: v{0}.{1}.{2}: %s'.format(*sys.version_info[:3]) %
             sys.executable)
         log('ASE v%s: %s' % (aseversion, os.path.dirname(ase.__file__)))
-        log('NumPy v%s: %s' %
-            (np.version.version, os.path.dirname(np.__file__)))
+        log('NumPy v%s: %s' % (np.version.version, os.path.dirname(
+            np.__file__)))
         # SciPy is not a strict dependency.
         try:
             import scipy
-            log('SciPy v%s: %s' %
-                (scipy.version.version, os.path.dirname(scipy.__file__)))
+            log('SciPy v%s: %s' % (scipy.version.version,
+                                   os.path.dirname(scipy.__file__)))
         except ImportError:
             log('SciPy: not available')
         # ZMQ and pxssh are only necessary for parallel calculations.
         try:
             import zmq
-            log('ZMQ/PyZMQ v%s/v%s: %s' %
-                (zmq.zmq_version(), zmq.pyzmq_version(),
-                 os.path.dirname(zmq.__file__)))
+            log('ZMQ/PyZMQ v%s/v%s: %s' % (zmq.zmq_version(),
+                                           zmq.pyzmq_version(),
+                                           os.path.dirname(zmq.__file__)))
         except ImportError:
             log('ZMQ: not available')
         try:
@@ -478,8 +473,8 @@ class Amp(Calculator, object):
                 log('pxssh: Not available from pexpect.')
             else:
                 import pexpect
-                log('pxssh (via pexpect v%s): %s' %
-                    (pexpect.__version__, pxssh.__file__))
+                log('pxssh (via pexpect v%s): %s' % (pexpect.__version__,
+                                                     pxssh.__file__))
         log('=' * 70)
 
 
@@ -510,8 +505,7 @@ def importhelper(importname):
             'Attempt to import the module %s. Was this intended? '
             'If so, trying manually importing this module and '
             'feeding it to Amp.load. To avoid this error, this '
-            'module can be added to amp.importhelper.' %
-            importname)
+            'module can be added to amp.importhelper.' % importname)
 
     return Imported
 
@@ -523,9 +517,8 @@ def get_git_commit(ampdirectory):
     os.chdir(ampdirectory)
     try:
         with open(os.devnull, 'w') as devnull:
-            output = subprocess.check_output(['git', 'log', '-1',
-                                              '--pretty=%H\t%ci'],
-                                             stderr=devnull)
+            output = subprocess.check_output(
+                ['git', 'log', '-1', '--pretty=%H\t%ci'], stderr=devnull)
     except:
         output = b'unknown hash\tunknown date'
     output = output.decode('utf-8')
