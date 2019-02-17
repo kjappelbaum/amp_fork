@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a202d96e-3991-4b22-864a-33aafaf14ab4" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/amp/model/keras.py" beforeDir="false" afterPath="$PROJECT_DIR$/amp/model/keras.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/amp/descriptor/farthest_point.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -19,18 +20,6 @@
               <caret line="76" column="34" selection-start-line="76" selection-start-column="34" selection-end-line="76" selection-end-column="34" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/amp/__init__.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="680">
-              <caret line="364" column="36" selection-start-line="364" selection-start-column="36" selection-end-line="364" selection-end-column="36" />
-              <folding>
-                <element signature="e#0#9#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -78,13 +67,25 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/amp/model/keras.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="561">
+            <state>
               <caret line="49" column="31" selection-start-line="49" selection-start-column="31" selection-end-line="49" selection-end-column="31" />
               <folding>
                 <element signature="e#208#276#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/amp/descriptor/farthest_point.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="340">
+              <caret line="96" column="39" lean-forward="true" selection-start-line="96" selection-start-column="39" selection-end-line="96" selection-end-column="39" />
+              <folding>
+                <element signature="e#208#217#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -182,6 +183,7 @@
         <option value="$PROJECT_DIR$/my_todo.md" />
         <option value="$PROJECT_DIR$/amp/model/neuralnetwork.py" />
         <option value="$PROJECT_DIR$/amp/model/keras.py" />
+        <option value="$PROJECT_DIR$/amp/descriptor/farthest_point.py" />
       </list>
     </option>
   </component>
@@ -191,11 +193,11 @@
     <other-services-enabled>true</other-services-enabled>
     <auto-save>true</auto-save>
   </component>
-  <component name="ProjectFrameBounds">
-    <option name="x" value="38" />
-    <option name="y" value="107" />
-    <option name="width" value="1890" />
-    <option name="height" value="1045" />
+  <component name="ProjectFrameBounds" extendedState="4">
+    <option name="x" value="1024" />
+    <option name="y" value="25" />
+    <option name="width" value="1024" />
+    <option name="height" value="1127" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -279,7 +281,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1550176908967</updated>
-      <workItem from="1550176910588" duration="23495000" />
+      <workItem from="1550176910588" duration="27079000" />
     </task>
     <task id="LOCAL-00001" summary="Added tqdm todo">
       <created>1550245267040</created>
@@ -292,19 +294,19 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="23495000" />
+    <option name="totallyTimeSpent" value="27079000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="38" y="107" width="1890" height="1045" extended-state="0" />
+    <frame x="1024" y="25" width="1024" height="1127" extended-state="4" />
     <editor active="true" />
     <layout>
       <window_info id="Favorites" side_tool="true" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.27114967" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.12781186" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Docker" />
       <window_info anchor="bottom" id="Database Changes" />
       <window_info anchor="bottom" id="Version Control" />
-      <window_info anchor="bottom" id="Python Console" visible="true" weight="0.22379912" />
+      <window_info active="true" anchor="bottom" id="Python Console" visible="true" weight="0.20541082" />
       <window_info anchor="bottom" id="Terminal" />
       <window_info anchor="bottom" id="Event Log" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -505,10 +507,20 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/amp/model/keras.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="561">
+        <state>
           <caret line="49" column="31" selection-start-line="49" selection-start-column="31" selection-end-line="49" selection-end-column="31" />
           <folding>
             <element signature="e#208#276#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/amp/descriptor/farthest_point.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="340">
+          <caret line="96" column="39" lean-forward="true" selection-start-line="96" selection-start-column="39" selection-end-line="96" selection-end-column="39" />
+          <folding>
+            <element signature="e#208#217#0" expanded="true" />
           </folding>
         </state>
       </provider>
