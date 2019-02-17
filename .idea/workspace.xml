@@ -81,8 +81,11 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/amp/model/keras.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="289">
-              <caret line="17" column="70" selection-start-line="17" selection-start-column="70" selection-end-line="17" selection-end-column="70" />
+            <state relative-caret-position="561">
+              <caret line="49" column="31" selection-start-line="49" selection-start-column="31" selection-end-line="49" selection-end-column="31" />
+              <folding>
+                <element signature="e#208#276#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -102,8 +105,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/amp/model/neuralnetwork.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="374">
-              <caret line="631" column="8" selection-start-line="631" selection-start-column="8" selection-end-line="631" selection-end-column="8" />
+            <state relative-caret-position="199">
+              <caret line="857" column="29" selection-start-line="857" selection-start-column="24" selection-end-line="857" selection-end-column="29" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -114,7 +117,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/amp/analysis.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="203">
+            <state relative-caret-position="305">
               <caret line="49" column="40" selection-start-line="49" selection-start-column="34" selection-end-line="49" selection-end-column="40" />
               <folding>
                 <element signature="e#23#32#0" expanded="true" />
@@ -134,7 +137,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>get_</find>
       <find>get</find>
       <find>get_pot</find>
       <find>calculate</find>
@@ -163,6 +165,7 @@
       <find>array</find>
       <find>add</find>
       <find>element</find>
+      <find>input</find>
       <find>primes</find>
     </findStrings>
   </component>
@@ -276,7 +279,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1550176908967</updated>
-      <workItem from="1550176910588" duration="23144000" />
+      <workItem from="1550176910588" duration="23495000" />
     </task>
     <task id="LOCAL-00001" summary="Added tqdm todo">
       <created>1550245267040</created>
@@ -289,7 +292,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="23144000" />
+    <option name="totallyTimeSpent" value="23495000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="38" y="107" width="1890" height="1045" extended-state="0" />
@@ -453,16 +456,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/amp/model/neuralnetwork.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="374">
-          <caret line="631" column="8" selection-start-line="631" selection-start-column="8" selection-end-line="631" selection-end-column="8" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/my_todo.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="SPLIT">
@@ -490,9 +483,19 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/amp/model/neuralnetwork.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="199">
+          <caret line="857" column="29" selection-start-line="857" selection-start-column="24" selection-end-line="857" selection-end-column="29" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/amp/analysis.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="203">
+        <state relative-caret-position="305">
           <caret line="49" column="40" selection-start-line="49" selection-start-column="34" selection-end-line="49" selection-end-column="40" />
           <folding>
             <element signature="e#23#32#0" expanded="true" />
@@ -502,8 +505,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/amp/model/keras.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="289">
-          <caret line="17" column="70" selection-start-line="17" selection-start-column="70" selection-end-line="17" selection-end-column="70" />
+        <state relative-caret-position="561">
+          <caret line="49" column="31" selection-start-line="49" selection-start-column="31" selection-end-line="49" selection-end-column="31" />
+          <folding>
+            <element signature="e#208#276#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

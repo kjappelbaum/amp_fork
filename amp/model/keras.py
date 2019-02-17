@@ -7,6 +7,7 @@ __date__ = '17.02.19'
 __status__ = 'First Draft, Testing'
 
 from keras.layers import Input, Dense, Dropout, GaussianDropout, Add
+from keras.backend import sum
 
 
 class KerasNN():
@@ -15,7 +16,7 @@ class KerasNN():
     avoid a bit the api changes in TF and making it easier to maintain.
 
     In the end, I also want to play with convolutional and bayesian nets.
-    I will start implementing energy only and maybe add forces later. 
+    I will start implementing energy only and maybe add forces later.
     """
 
     def elemental_net(self,
@@ -42,12 +43,11 @@ class KerasNN():
         -------
 
         """
-        assert hidden_layers is not None
-        'No hidden layer architecture provided to constructor'
+        assert hidden_layers is not None, 'No hidden layer architecture provided to constructor'
 
         input = Input(shape=(fp_length, ), dtype='float32', name=element)
 
-        x = Dense(hidden_layer[0], activation=activation)(input)
+        x = Dense(hidden_layers[0], activation=activation)(input)
         if dropout:
             x = Dropout(dropout)
         elif gaussian_dropout:
@@ -61,6 +61,7 @@ class KerasNN():
                 x = GaussianDropout(gaussian_dropout)
 
         x = Dense(1, activation='linear')(x)
+        x = sum(x, axis=1, keepdims=False)
 
         return x
 
