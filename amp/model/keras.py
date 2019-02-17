@@ -15,9 +15,16 @@ class KerasNN():
     avoid a bit the api changes in TF and making it easier to maintain.
 
     In the end, I also want to play with convolutional and bayesian nets.
+    I will start implementing energy only and maybe add forces later. 
     """
 
-    def elemental_net(self, hidden_layers=None, dropout=False, gaussian_dropout=0.4, activation='relu', fp_length=None, element=None):
+    def elemental_net(self,
+                      hidden_layers=None,
+                      dropout=False,
+                      gaussian_dropout=0.4,
+                      activation='relu',
+                      fp_length=None,
+                      element=None):
         """
         Constructs a MLP network for one element type.
 
@@ -35,9 +42,10 @@ class KerasNN():
         -------
 
         """
-        assert hidden_layers is not None; 'No hidden layer architecture provided to constructor'
+        assert hidden_layers is not None
+        'No hidden layer architecture provided to constructor'
 
-        input = Input(shape=(fp_length,), dtype='float32', name=element)
+        input = Input(shape=(fp_length, ), dtype='float32', name=element)
 
         x = Dense(hidden_layer[0], activation=activation)(input)
         if dropout:
@@ -69,5 +77,3 @@ class KerasNN():
         Add them together.
         :return:
         """
-
-        
